@@ -801,6 +801,15 @@ function Toggle({ label, checked, onChange, sublabel }: { label: string; checked
     );
 }
 
+function withoutReplacedNativeBadges(badges: any[] | undefined, data: CustomProfileData) {
+    const hideNitro = (data.nitroLevel ?? -1) >= 0;
+    const hideBoost = (data.boostMonths ?? -1) >= 0;
+    return (badges ?? []).filter(b => {
+        const id = String(b?.id ?? "");
+        return !(hideNitro && id.startsWith("premium")) && !(hideBoost && id.startsWith("guild_booster"));
+    });
+}
+
 function withoutNativeDuplicates(added: ProfileBadge[], native?: ProfileBadge[]) {
     const nativeIcons = new Set((native ?? []).map(b => (b as any).icon ?? b.iconSrc?.split("/").pop()?.replace(".png", "")));
     return added.filter(b => !nativeIcons.has(b.iconSrc?.split("/").pop()?.replace(".png", "")));
@@ -1495,7 +1504,7 @@ export default definePlugin({
                 merged.themeColors = [data.accentColor, c2];
             }
 
-            const badgesArr = Array.isArray(profile.badges) ? [...profile.badges] : [];
+            const badgesArr = withoutReplacedNativeBadges(profile.badges, data);
             const customIds = data.customBadgeIds ?? [];
             if (customIds.includes("quest")) badgesArr.push({ id: "quest", icon: "7d9ae358c8c5e118768335dbe68b4fb8", description: "Completed a quest" });
             if (customIds.includes("orbs")) badgesArr.push({ id: "orbs", icon: "83d8a1eb09a8d64e59233eec5d4d5c2d", description: "Orbs — Apprentice" });
@@ -1503,7 +1512,7 @@ export default definePlugin({
                 const dText = data.oldName ? "Originally known as " + data.oldName : "Originally known as ...";
                 badgesArr.push({ id: "legacy_username", icon: "6de6d34650760ba5551a79732e98ed60", description: dText });
             }
-            if (badgesArr.length > 0) merged.badges = badgesArr;
+            merged.badges = badgesArr;
 
             return virtualMerge(profile, merged);
         } catch (e) {
@@ -1543,6 +1552,7 @@ export default definePlugin({
             // permissions and guild ordering. Modifying them causes random guild
             // reordering and hidden channels. Only visual fields (bio, pronouns,
             // colors, banner, badges for display) are overridden.
+            merged.badges = withoutReplacedNativeBadges(profile.badges, storedData);
             const result = virtualMerge(profile, merged);
             this._cachedProfileInput = profile;
             this._cachedProfile = result;
