@@ -6,7 +6,6 @@
 
 import "./styles.css";
 
-import { ProfileBadge } from "@api/Badges";
 import { addContextMenuPatch, NavContextMenuPatchCallback, removeContextMenuPatch } from "@api/ContextMenu";
 import { addHeaderBarButton, HeaderBarButton, removeHeaderBarButton } from "@api/HeaderBar";
 import { DataStore } from "@api/index";
@@ -801,18 +800,70 @@ function Toggle({ label, checked, onChange, sublabel }: { label: string; checked
     );
 }
 
-function withoutReplacedNativeBadges(badges: any[] | undefined, data: CustomProfileData) {
-    const hideNitro = (data.nitroLevel ?? -1) >= 0;
-    const hideBoost = (data.boostMonths ?? -1) >= 0;
-    return (badges ?? []).filter(b => {
-        const id = String(b?.id ?? "");
-        return !(hideNitro && id.startsWith("premium")) && !(hideBoost && id.startsWith("guild_booster"));
-    });
-}
+const FLAG_BADGES: Record<number, [id: string, description: string]> = {
+    [FLAG.STAFF]: ["staff", "Discord Staff"],
+    [FLAG.PARTNER]: ["partner", "Partnered Server Owner"],
+    [FLAG.HYPESQUAD]: ["hypesquad", "HypeSquad Events"],
+    [FLAG.BUG_HUNTER_1]: ["bug_hunter_level_1", "Discord Bug Hunter"],
+    [FLAG.BRAVERY]: ["hypesquad_house_1", "HypeSquad Bravery"],
+    [FLAG.BRILLIANCE]: ["hypesquad_house_2", "HypeSquad Brilliance"],
+    [FLAG.BALANCE]: ["hypesquad_house_3", "HypeSquad Balance"],
+    [FLAG.EARLY_SUPPORTER]: ["early_supporter", "Early Supporter"],
+    [FLAG.BUG_HUNTER_2]: ["bug_hunter_level_2", "Discord Bug Hunter"],
+    [FLAG.DEV_VERIFIED]: ["verified_developer", "Early Verified Bot Developer"],
+    [FLAG.MOD_ALUMNI]: ["certified_moderator", "Moderator Programs Alumni"],
+    [FLAG.ACTIVE_DEVELOPER]: ["active_developer", "Active Developer"],
+};
 
-function withoutNativeDuplicates(added: ProfileBadge[], native?: ProfileBadge[]) {
-    const nativeIcons = new Set((native ?? []).map(b => (b as any).icon ?? b.iconSrc?.split("/").pop()?.replace(".png", "")));
-    return added.filter(b => !nativeIcons.has(b.iconSrc?.split("/").pop()?.replace(".png", "")));
+const BADGE_ORDER = [
+    "staff", "partner", "certified_moderator", "hypesquad", "hypesquad_house", "bug_hunter_level_1", "bug_hunter_level_2",
+    "verified_developer", "active_developer", "premium", "guild_booster", "early_supporter", "legacy_username", "quest", "orb",
+];
+const NITRO_MONTHS = [0, 1, 2, 3, 6, 12, 24, 36, 72];
+const BOOST_MONTHS = [1, 2, 3, 6, 9, 12, 15, 18, 24];
+
+const iconHash = (url: string) => url.split("/").pop()!.replace(".png", "");
+const badgeRank = (id: string) => {
+    const i = BADGE_ORDER.findIndex(prefix => id.startsWith(prefix));
+    return i === -1 ? BADGE_ORDER.length : i;
+};
+const sinceText = (months: number) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - months);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
+
+function buildProfileBadges(native: any[] | undefined, data: CustomProfileData) {
+    const nl = data.nitroLevel ?? -1;
+    const bm = data.boostMonths ?? -1;
+    const hasNitro = nl >= 0 && nl < NITRO_LEVELS.length;
+    const hasBoost = bm >= 0 && bm < BOOST_ICONS.length;
+
+    const added: { id: string; icon: string; description: string; }[] = [];
+    for (const badge of BADGES) {
+        if (!((data.badgeFlags ?? 0) & badge.flag)) continue;
+        const [id, description] = FLAG_BADGES[badge.flag];
+        added.push({ id, icon: iconHash(badge.icon), description });
+    }
+    if (hasNitro) added.push({ id: "premium", icon: iconHash(NITRO_LEVELS[nl].icon), description: `Subscriber since ${sinceText(NITRO_MONTHS[nl])}` });
+    if (hasBoost) added.push({ id: `guild_booster_lvl${bm + 1}`, icon: iconHash(BOOST_ICONS[bm]), description: `Server boosting since ${sinceText(BOOST_MONTHS[bm])}` });
+    const customIds = data.customBadgeIds ?? [];
+    if (customIds.includes("oldname")) added.push({ id: "legacy_username", icon: iconHash(OLD_NAME_BADGE_ICON), description: `Originally known as ${data.oldName || "..."}` });
+    if (customIds.includes("quest")) added.push({ id: "quest_completed", icon: "7d9ae358c8c5e118768335dbe68b4fb8", description: "Completed a Quest" });
+    if (customIds.includes("orbs")) added.push({ id: "orb_profile_badge", icon: "83d8a1eb09a8d64e59233eec5d4d5c2d", description: "Orbs Apprentice" });
+
+    const addedIds = new Set(added.map(b => b.id));
+    const kept = (native ?? []).filter(b => {
+        const id = String(b?.id ?? "");
+        if (addedIds.has(id)) return false;
+        if (hasNitro && id.startsWith("premium")) return false;
+        return !(hasBoost && id.startsWith("guild_booster"));
+    });
+
+    return [...kept, ...added]
+        .map((b, i) => ({ b, i, rank: badgeRank(String(b.id ?? "")) }))
+        .sort((x, y) => x.rank - y.rank || x.i - y.i)
+        .map(({ b }) => b);
 }
 
 function BadgeBtn({ label, icon, active, onClick }: { label: string; icon?: string; active: boolean; onClick: () => void; }) {
@@ -1504,15 +1555,7 @@ export default definePlugin({
                 merged.themeColors = [data.accentColor, c2];
             }
 
-            const badgesArr = withoutReplacedNativeBadges(profile.badges, data);
-            const customIds = data.customBadgeIds ?? [];
-            if (customIds.includes("quest")) badgesArr.push({ id: "quest", icon: "7d9ae358c8c5e118768335dbe68b4fb8", description: "Completed a quest" });
-            if (customIds.includes("orbs")) badgesArr.push({ id: "orbs", icon: "83d8a1eb09a8d64e59233eec5d4d5c2d", description: "Orbs — Apprentice" });
-            if (customIds.includes("oldname")) {
-                const dText = data.oldName ? "Originally known as " + data.oldName : "Originally known as ...";
-                badgesArr.push({ id: "legacy_username", icon: "6de6d34650760ba5551a79732e98ed60", description: dText });
-            }
-            merged.badges = badgesArr;
+            merged.badges = buildProfileBadges(profile.badges, data);
 
             return virtualMerge(profile, merged);
         } catch (e) {
@@ -1552,7 +1595,7 @@ export default definePlugin({
             // permissions and guild ordering. Modifying them causes random guild
             // reordering and hidden channels. Only visual fields (bio, pronouns,
             // colors, banner, badges for display) are overridden.
-            merged.badges = withoutReplacedNativeBadges(profile.badges, storedData);
+            merged.badges = buildProfileBadges(profile.badges, storedData);
             const result = virtualMerge(profile, merged);
             this._cachedProfileInput = profile;
             this._cachedProfile = result;
@@ -1921,139 +1964,6 @@ export default definePlugin({
         } catch { }
     },
 
-    userProfileBadges: [
-        {
-            getBadges({ userId, badges: nativeBadges }: { userId: string; guildId: string; badges: ProfileBadge[]; }) {
-                const style = { borderRadius: "50%", width: "22px", height: "22px" };
-
-                // --- Other users via public cache ---
-                const isCurrentUser = userId === UserStore.getCurrentUser()?.id;
-                if (!isCurrentUser) {
-                    if (!Settings.seeAllCustomProfile) return [];
-                    const cached = publicProfilesCache.get(userId);
-                    if (!cached?.fetched || !cached.data) return [];
-                    const d = cached.data;
-
-                    const extra: ProfileBadge[] = [];
-                    const wantedFlags = d.badgeFlags ?? 0;
-                    for (const badge of BADGES) {
-                        if (wantedFlags & badge.flag) {
-                            extra.push({ description: badge.label, iconSrc: badge.icon, position: 0, props: { style } });
-                        }
-                    }
-                    const nl = d.nitroLevel ?? -1;
-                    if (nl >= 0 && nl < NITRO_LEVELS.length) {
-                        extra.push({ description: "Nitro", iconSrc: NITRO_LEVELS[nl].icon, position: 0, props: { style } });
-                    }
-                    const bm = d.boostMonths ?? -1;
-                    if (bm >= 0 && bm < BOOST_ICONS.length) {
-                        extra.push({ description: `Server Booster \u2014 ${BOOST_LABELS[bm]}`, iconSrc: BOOST_ICONS[bm], position: 0, props: { style } });
-                    }
-                    if (d.customBadgeIds?.includes("quest")) extra.push({ description: "Completed a quest", iconSrc: "https://cdn.discordapp.com/badge-icons/7d9ae358c8c5e118768335dbe68b4fb8.png", position: 0, props: { style } });
-                    if (d.customBadgeIds?.includes("orbs")) extra.push({ description: "Orbs \u2014 Apprentice", iconSrc: "https://cdn.discordapp.com/badge-icons/83d8a1eb09a8d64e59233eec5d4d5c2d.png", position: 0, props: { style } });
-                    if (d.customBadgeIds?.includes("oldname")) {
-                        const oldNameText = d.oldName ? `Old username: ${d.oldName}` : "Old username";
-                        extra.push({ description: oldNameText, iconSrc: OLD_NAME_BADGE_ICON, position: 0, props: { style } });
-                    }
-                    return withoutNativeDuplicates(extra, nativeBadges);
-                }
-
-                // --- Own user ---
-                if (!isEnabled) return [];
-
-                const nl = storedData.nitroLevel ?? -1;
-                const bm = storedData.boostMonths ?? -1;
-                const hasNitroFake = nl >= 0 && nl < NITRO_LEVELS.length;
-                const hasBoostFake = bm >= 0 && bm < BOOST_ICONS.length;
-
-                const badgeList: ProfileBadge[] = [];
-
-                // 1. Staff Discord
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.STAFF)) {
-                    badgeList.push({ description: t("Staff Discord"), iconSrc: "https://cdn.discordapp.com/badge-icons/5e74e9b61934fc1f67c65515d1f7e60d.png", position: 0, props: { style } });
-                }
-
-                // 2. Partner
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.PARTNER)) {
-                    badgeList.push({ description: t("Partenaire"), iconSrc: "https://cdn.discordapp.com/badge-icons/3f9748e53446a137a052f3454e2de41e.png", position: 0, props: { style } });
-                }
-
-                // 3. NITRO (Image 2 shows it here)
-                if (hasNitroFake) {
-                    badgeList.push({ description: "NITRO\nSubscribed since 10/22/21", iconSrc: NITRO_LEVELS[nl].icon, position: 0, props: { style, title: "Nitro" } });
-                }
-
-                // 4. HypeSquad Events
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.HYPESQUAD)) {
-                    badgeList.push({ description: t("HypeSquad Events"), iconSrc: "https://cdn.discordapp.com/badge-icons/bf01d1073931f921909045f3a39fd264.png", position: 0, props: { style } });
-                }
-
-                // 5. Bug Hunter 2
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.BUG_HUNTER_2)) {
-                    badgeList.push({ description: t("Bug Hunter Lvl 2"), iconSrc: "https://cdn.discordapp.com/badge-icons/848f79194d4be5ff5f81505cbd0ce1e6.png", position: 0, props: { style } });
-                }
-
-                // 6. House Badges (HypeSquad Houses)
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.BALANCE)) {
-                    badgeList.push({ description: t("HypeSquad Balance"), iconSrc: "https://cdn.discordapp.com/badge-icons/3aa41de486fa12454c3761e8e223442e.png", position: 0, props: { style } });
-                }
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.BRAVERY)) {
-                    badgeList.push({ description: t("HypeSquad Bravery"), iconSrc: "https://cdn.discordapp.com/badge-icons/8a88d63823d8a71cd5e390baa45efa02.png", position: 0, props: { style } });
-                }
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.BRILLIANCE)) {
-                    badgeList.push({ description: t("HypeSquad Brilliance"), iconSrc: "https://cdn.discordapp.com/badge-icons/011940fd013da3f7fb926e4a1cd2e618.png", position: 0, props: { style } });
-                }
-
-                // 7. Bug Hunter 1
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.BUG_HUNTER_1)) {
-                    badgeList.push({ description: t("Bug Hunter Lvl 1"), iconSrc: "https://cdn.discordapp.com/badge-icons/2717692c7dca7289b35297368a940dd0.png", position: 0, props: { style } });
-                }
-
-                // 8. Developer (Verified)
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.DEV_VERIFIED)) {
-                    badgeList.push({ description: t("Verified Developer"), iconSrc: "https://cdn.discordapp.com/badge-icons/6df5892e0f35b051f8b61eace34f4967.png", position: 0, props: { style } });
-                }
-
-                // 9. Former Moderator
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.MOD_ALUMNI)) {
-                    badgeList.push({ description: t("Former Moderator"), iconSrc: "https://cdn.discordapp.com/badge-icons/fee1624003e2fee35cb398e125dc479b.png", position: 0, props: { style } });
-                }
-
-                // 10. Early Supporter
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.EARLY_SUPPORTER)) {
-                    badgeList.push({ description: t("Early Supporter"), iconSrc: "https://cdn.discordapp.com/badge-icons/7060786766c9c840eb3019e725d2b358.png", position: 0, props: { style } });
-                }
-
-                // 11. SERVER BOOST (Right after Early Supporter on image 2)
-                if (hasBoostFake) {
-                    badgeList.push({ description: `Server Booster — ${BOOST_LABELS[bm]}`, iconSrc: BOOST_ICONS[bm], position: 0, props: { style, title: `Server Booster — ${BOOST_LABELS[bm]}` } });
-                }
-
-                // 12. Active Developer
-                if (storedData.badgeFlags && (storedData.badgeFlags & FLAG.ACTIVE_DEVELOPER)) {
-                    badgeList.push({ description: t("Active Developer"), iconSrc: "https://cdn.discordapp.com/badge-icons/6bdc42827a38498929a4920da12695d9.png", position: 0, props: { style } });
-                }
-
-                // 13. Old Name (Ancien nom d'utilisateur)
-                if (storedData.customBadgeIds?.includes("oldname")) {
-                    const oldNameText = storedData.oldName ? `Old username\u00a0: ${storedData.oldName}` : "Old username";
-                    badgeList.push({ description: oldNameText, iconSrc: OLD_NAME_BADGE_ICON, position: 0, props: { style, title: oldNameText } });
-                }
-
-                // 14. Completed Quest (Quêtes)
-                if (storedData.customBadgeIds?.includes("quest")) {
-                    badgeList.push({ description: "Completed a quest", iconSrc: "https://cdn.discordapp.com/badge-icons/7d9ae358c8c5e118768335dbe68b4fb8.png", position: 0, props: { style } });
-                }
-
-                // 15. Orbs
-                if (storedData.customBadgeIds?.includes("orbs")) {
-                    badgeList.push({ description: "Orbs — Apprentice", iconSrc: "https://cdn.discordapp.com/badge-icons/83d8a1eb09a8d64e59233eec5d4d5c2d.png", position: 0, props: { style } });
-                }
-
-                return withoutNativeDuplicates(badgeList, nativeBadges);
-            }
-        } as ProfileBadge
-    ] as ProfileBadge[],
 
     stop() {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
