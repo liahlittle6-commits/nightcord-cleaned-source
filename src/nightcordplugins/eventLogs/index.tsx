@@ -85,7 +85,11 @@ function loadPersistLogs() {
     } catch { }
 }
 
+let persistDirty = false;
+
 function savePersistLogs() {
+    if (!persistDirty) return;
+    persistDirty = false;
     try {
         const toSave = logs.filter(l => PERSISTENT_TYPES.has(l.type));
         localStorage.setItem("nightcord_logs", JSON.stringify(toSave));
@@ -131,6 +135,7 @@ function pushLog(entry: Omit<LogEntry, "id" | "timestamp" | "timeStr">) {
     if (NOTIF_TYPES.has(newLog.type)) {
         unreadLogEntries.add(newLog);
     }
+    if (PERSISTENT_TYPES.has(newLog.type)) persistDirty = true;
     scheduleFlush();
 }
 
@@ -669,7 +674,7 @@ function subscribeToEvents() {
         }
     });
     sub("MESSAGE_UPDATE", d => {
-        if (!d.message) return;
+        if (d.message?.content == null) return;
         const m = d.message; const cached = msgCache.get(m.id);
         const oldC = cached?.content ?? "", newC = m.content ?? "";
         if (oldC === newC) return;
@@ -807,7 +812,7 @@ export default definePlugin({
     stop() {
         removeHeaderBarButton("nightcord-event-logs");
         unsubs.forEach(fn => fn()); unsubs = [];
-        if (flushTimer !== null) { clearTimeout(flushTimer); flushTimer = null; }
+        if (flushTimer !== null) { clearTimeout(flushTimer); flushTimer = null; savePersistLogs(); }
         logs = []; msgCache.clear(); prevVS.clear(); updateListeners.clear();
         isLoadingMessages = false;
         myVoiceChannelId = null;

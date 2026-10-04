@@ -153,11 +153,6 @@ function _onGCVisChange() {
     }
 }
 
-function _onGCBlur() {
-    if (limitMsgCache) pruneMessageCaches();
-    forceGC();
-}
-
 const CHANNEL_STALE_MS = 5 * 60 * 1000;
 
 function pruneMessageCaches() {
@@ -220,7 +215,7 @@ function applyBgFpsPatch(enable: boolean) {
         document.addEventListener("visibilitychange", _onVisChange);
         window.addEventListener("blur", _onBlur);
         window.addEventListener("focus", _onFocus);
-        if (document.hidden || !document.hasFocus()) _installRafThrottle();
+        if (!document.hasFocus()) _installRafThrottle();
     } else if (!enable && _bgFpsActive) {
         _bgFpsActive = false;
         document.removeEventListener("visibilitychange", _onVisChange);
@@ -231,10 +226,10 @@ function applyBgFpsPatch(enable: boolean) {
 }
 
 function _onVisChange() {
-    if (document.hidden) {
-        _installRafThrottle();
-    } else if (document.hasFocus()) {
+    if (document.hidden || document.hasFocus()) {
         _uninstallRafThrottle();
+    } else {
+        _installRafThrottle();
     }
 }
 
@@ -249,7 +244,7 @@ function _onFocus() {
 }
 
 function _installRafThrottle() {
-    if (_origRAF || !_bgFpsActive) return;
+    if (_origRAF || !_bgFpsActive || document.hidden) return;
     _origRAF = window.requestAnimationFrame;
     _origCancel = window.cancelAnimationFrame;
     let _lastT = 0;
@@ -426,7 +421,6 @@ export default definePlugin({
         if (settings.store.reduceFpsBackground) applyBgFpsPatch(true);
 
         document.addEventListener("visibilitychange", _onGCVisChange);
-        window.addEventListener("blur", _onGCBlur);
     },
 
     stop() {
@@ -441,6 +435,5 @@ export default definePlugin({
         applyBgFpsPatch(false);
 
         document.removeEventListener("visibilitychange", _onGCVisChange);
-        window.removeEventListener("blur", _onGCBlur);
     }
 });

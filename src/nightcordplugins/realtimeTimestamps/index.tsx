@@ -6,7 +6,7 @@
 
 import { definePluginSettings } from "@api/Settings";
 import definePlugin, { OptionType } from "@utils/types";
-import { moment, useEffect, useReducer } from "@webpack/common";
+import { moment } from "@webpack/common";
 
 // ─── Settings ────────────────────────────────────────────────────────────────
 
@@ -32,49 +32,9 @@ const settings = definePluginSettings({
     },
 });
 
-// ─── Global tick — UN seul setInterval partagé par tous les composants ─────────
-// BUGFIX: l'ancienne implémentation créait un setInterval PAR composant timestamp
-// rendu (50+ messages = 50+ intervals), forçant 50+ re-renders React par seconde
-// → freeze complet de Discord. Un seul interval global notifie tous les abonnés.
-
-const tickListeners = new Set<() => void>();
-let globalTickInterval: ReturnType<typeof setInterval> | null = null;
-
-function startGlobalTick() {
-    if (globalTickInterval !== null) return;
-    globalTickInterval = setInterval(() => {
-        for (const fn of tickListeners) {
-            try { fn(); } catch { }
-        }
-    }, 1000);
-}
-
-function stopGlobalTick() {
-    if (tickListeners.size > 0) return; // still has subscribers
-    if (globalTickInterval !== null) {
-        clearInterval(globalTickInterval);
-        globalTickInterval = null;
-    }
-}
-
-function useSecondTick() {
-    const [, tick] = useReducer((n: number) => n + 1, 0);
-    useEffect(() => {
-        tickListeners.add(tick);
-        startGlobalTick();
-        return () => {
-            tickListeners.delete(tick);
-            stopGlobalTick();
-        };
-    }, []);
-}
-
 // ─── Renderers called by the patches ─────────────────────────────────────────
 
 function renderTimestamp(date: Date, type: "cozy" | "compact" | "tooltip"): string {
-    // Hook must be called unconditionally — React requires this
-    useSecondTick();
-
     const fmt = settings.store.format ?? "HH:mm:ss";
 
     switch (type) {
@@ -98,22 +58,13 @@ function renderTimestamp(date: Date, type: "cozy" | "compact" | "tooltip"): stri
 
 export default definePlugin({
     name: "RealtimeTimestamps",
-    description: "Replaces Discord timestamps (e.g. 15:31) with live seconds (e.g. 15:34:21), updated every second.",
+    description: "Replaces Discord timestamps (e.g. 15:31) with seconds (e.g. 15:34:21).",
     tags: ["Appearance", "Chat", "Utility"],
     authors: [{ name: "Nightcord", id: 253979869n }],
     enabledByDefault: true,
     settings,
 
     renderTimestamp,
-
-    stop() {
-        // Cleanup global tick on plugin disable
-        tickListeners.clear();
-        if (globalTickInterval !== null) {
-            clearInterval(globalTickInterval);
-            globalTickInterval = null;
-        }
-    },
 
     patches: [
         // ─── Main Timestamp component (cozy + compact messages + hover tooltip) ─

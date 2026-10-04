@@ -868,18 +868,12 @@ export default definePlugin({
             }
         };
 
-        let debounceTimer: any = null;
         this._observer = new MutationObserver(() => {
-            if (document.visibilityState === "hidden") return;
-            const existing = document.getElementById("nai-nav-injected");
-            if (existing) {
-                const navItem = findShopNavItem();
-                if (navItem && existing.nextSibling === navItem && navItem.style.display === "none") {
-                    return;
-                }
-            }
-            if (debounceTimer) clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => inject(), 80);
+            if (document.visibilityState === "hidden" || (this as any)._injectTimer) return;
+            (this as any)._injectTimer = setTimeout(() => {
+                (this as any)._injectTimer = null;
+                inject();
+            }, 250);
         });
         if (document.visibilityState !== "hidden") {
             this._observer.observe(document.body, { childList: true, subtree: true });
@@ -907,6 +901,8 @@ export default definePlugin({
         }
         this._observer?.disconnect();
         this._observer = null;
+        clearTimeout((this as any)._injectTimer);
+        (this as any)._injectTimer = null;
         try { this._reactRoot?.unmount(); } catch (_) { }
         this._reactRoot = null;
         const injected = document.getElementById("nai-nav-injected");

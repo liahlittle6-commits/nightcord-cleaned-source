@@ -637,23 +637,18 @@ function scanTextNode(node: Text) {
     if (replaced && result !== node.nodeValue) { if ((node as any).__cp_orig === undefined) (node as any).__cp_orig = val; node.nodeValue = result; }
 }
 
+const SCAN_ZONE_SELECTOR = "[class*='accountPanel'],[class*='accountProfilePopout'],[class*='userProfileModal'],[class*='Settings'],[class*='cp-'],[class*='Member'],[class*='member'],[class*='nameTag']";
+
 function isInScanZone(el: Element): boolean {
     // Only scan within: account panel, profile popouts/modals, user settings, member lists
-    return !!(
-        el.closest("[class*='accountPanel']") ||
-        el.closest("[class*='accountProfilePopout']") ||
-        el.closest("[class*='userProfileModal']") ||
-        el.closest("[class*='userSettings']") ||
-        el.closest("[class*='Settings']") ||
-        el.closest("[class*='cp-']") ||
-        el.closest("[class*='Member']") ||
-        el.closest("[class*='member']") ||
-        el.closest("[class*='nameTag']")
-    );
+    return el.closest(SCAN_ZONE_SELECTOR) != null;
 }
 
 function scanNode(node: Node) {
-    if (node.nodeType === Node.TEXT_NODE) { scanTextNode(node as Text); return; }
+    if (node.nodeType === Node.TEXT_NODE) {
+        if (node.parentElement && isInScanZone(node.parentElement)) scanTextNode(node as Text);
+        return;
+    }
     if (node instanceof Element) {
         const tag = node.tagName;
         if (tag === "SCRIPT" || tag === "STYLE" || tag === "SVG" || tag === "CANVAS" || tag === "VIDEO" || tag === "IFRAME") return;
@@ -680,7 +675,7 @@ function processDomBatch() {
     try {
         for (const m of batch) {
             if (m.type === "characterData") {
-                scanTextNode(m.target as Text);
+                scanNode(m.target);
             } else {
                 for (const n of m.addedNodes) {
                     scanNode(n);
@@ -704,7 +699,7 @@ function startDomObserver() {
             _domMutations = [];
             return;
         }
-        _domMutations.push(...mutations);
+        for (const m of mutations) _domMutations.push(m);
         if (!_domQueued) {
             _domQueued = true;
             setTimeout(processDomBatch, 20);

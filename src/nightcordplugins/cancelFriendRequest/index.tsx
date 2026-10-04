@@ -47,6 +47,18 @@ function getUserIdFromOutgoingRelationships(): string | null {
 }
 
 let observer: MutationObserver | null = null;
+const pendingNodes = new Set<HTMLElement>();
+let scanFrame = 0;
+
+function flushPending() {
+    scanFrame = 0;
+    const nodes = [...pendingNodes];
+    pendingNodes.clear();
+    if (!hasOutgoingRequests()) return;
+    for (const node of nodes) {
+        if (node.isConnected) scan(node);
+    }
+}
 
 function patchBtn(btn: HTMLElement, userId: string) {
     if (btn.dataset.cfp) return;
@@ -132,9 +144,10 @@ export default definePlugin({
             if (document.visibilityState === "hidden") return;
             for (const m of mutations) {
                 for (const node of m.addedNodes) {
-                    if (node instanceof HTMLElement) scan(node);
+                    if (node instanceof HTMLElement) pendingNodes.add(node);
                 }
             }
+            if (pendingNodes.size && !scanFrame) scanFrame = requestAnimationFrame(flushPending);
         });
         if (document.visibilityState !== "hidden") {
             observer.observe(document.body, { childList: true, subtree: true });
@@ -147,6 +160,9 @@ export default definePlugin({
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         observer?.disconnect();
         observer = null;
+        cancelAnimationFrame(scanFrame);
+        scanFrame = 0;
+        pendingNodes.clear();
         document.querySelectorAll<HTMLElement>("[data-cfp]").forEach(el => {
             delete el.dataset.cfp;
         });

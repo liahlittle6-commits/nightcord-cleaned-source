@@ -117,6 +117,16 @@ function stopBlink() {
     blinkTimer = setTimeout(startBlink, 1000);
 }
 
+let caretFrame = 0;
+
+function scheduleCaretUpdate() {
+    if (caretFrame) return;
+    caretFrame = requestAnimationFrame(() => {
+        caretFrame = 0;
+        applyCaretPosition();
+    });
+}
+
 function applyCaretPosition() {
     const el = getCaret();
     if (!document.activeElement?.closest("[data-slate-editor]")) {
@@ -148,9 +158,10 @@ function applyCaretPosition() {
 let observer: MutationObserver | null = null;
 
 function startObserver() {
-    if (observer || document.visibilityState === "hidden") return;
-    observer = new MutationObserver(() => applyCaretPosition());
-    observer.observe(document.body, { childList: true, subtree: true });
+    const editor = document.activeElement?.closest("[data-slate-editor]");
+    if (observer || !editor || document.visibilityState === "hidden") return;
+    observer = new MutationObserver(scheduleCaretUpdate);
+    observer.observe(editor, { childList: true, subtree: true, characterData: true });
 }
 
 function stopObserver() {
@@ -158,34 +169,33 @@ function stopObserver() {
     observer = null;
 }
 
+function restartObserver() {
+    stopObserver();
+    startObserver();
+}
+
 function handleVisibilityChange() {
     if (document.visibilityState === "hidden") {
         stopObserver();
-    } else if (document.activeElement?.closest("[data-slate-editor]")) {
+    } else {
         startObserver();
     }
 }
 
 const handlers = {
-    sel:   () => applyCaretPosition(),
+    sel:   scheduleCaretUpdate,
     focus: () => {
-        applyCaretPosition();
-        if (document.activeElement?.closest("[data-slate-editor]")) {
-            startObserver();
-        }
+        scheduleCaretUpdate();
+        restartObserver();
     },
     blur:  () => {
         getCaret().style.display = "none";
         stopObserver();
     },
-    key:   () => applyCaretPosition(),
+    key:   scheduleCaretUpdate,
     click: () => {
-        applyCaretPosition();
-        if (document.activeElement?.closest("[data-slate-editor]")) {
-            startObserver();
-        } else {
-            stopObserver();
-        }
+        scheduleCaretUpdate();
+        restartObserver();
     },
 };
 
@@ -227,9 +237,7 @@ export default definePlugin({
     start() {
         applyCSS();
         getCaret();
-        if (document.activeElement?.closest("[data-slate-editor]")) {
-            startObserver();
-        }
+        startObserver();
         startListeners();
         document.addEventListener("visibilitychange", handleVisibilityChange);
     },
@@ -239,6 +247,8 @@ export default definePlugin({
         stopObserver();
         stopListeners();
         removeCSS();
+        cancelAnimationFrame(caretFrame);
+        caretFrame = 0;
         if (blinkTimer) clearTimeout(blinkTimer);
         document.getElementById("vc-smoothtype-caret")?.remove();
     },

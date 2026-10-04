@@ -8,7 +8,7 @@ import { EquicordDevs } from "@utils/constants";
 import { ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalRoot, openModal } from "@utils/modal";
 import definePlugin from "@utils/types";
 import { findByProps } from "@webpack";
-import { Forms, React, useState } from "@webpack/common";
+import { Forms, React, UserStore, useState } from "@webpack/common";
 
 // Identique à TokenImporter — même logique de connexion
 function switchToAccount(token: string) {
@@ -108,6 +108,7 @@ function LoginWithTokenModal({ rootProps }: { rootProps: any; }) {
 }
 
 let observer: MutationObserver | null = null;
+let injectFrame = 0;
 const MOUNT_ID = "lwt-mount";
 
 function openLoginModal() {
@@ -171,7 +172,11 @@ function startObserver() {
     stopObserver();
     tryInject();
     observer = new MutationObserver(() => {
-        if (!document.getElementById(MOUNT_ID)) tryInject();
+        if (injectFrame || UserStore.getCurrentUser()) return;
+        injectFrame = requestAnimationFrame(() => {
+            injectFrame = 0;
+            tryInject();
+        });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
@@ -179,6 +184,8 @@ function startObserver() {
 function stopObserver() {
     observer?.disconnect();
     observer = null;
+    cancelAnimationFrame(injectFrame);
+    injectFrame = 0;
     document.getElementById(MOUNT_ID)?.remove();
 }
 
