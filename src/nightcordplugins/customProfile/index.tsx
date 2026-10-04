@@ -801,6 +801,11 @@ function Toggle({ label, checked, onChange, sublabel }: { label: string; checked
     );
 }
 
+function withoutNativeDuplicates(added: ProfileBadge[], native?: ProfileBadge[]) {
+    const nativeIcons = new Set((native ?? []).map(b => (b as any).icon ?? b.iconSrc?.split("/").pop()?.replace(".png", "")));
+    return added.filter(b => !nativeIcons.has(b.iconSrc?.split("/").pop()?.replace(".png", "")));
+}
+
 function BadgeBtn({ label, icon, active, onClick }: { label: string; icon?: string; active: boolean; onClick: () => void; }) {
     return (
         <button onClick={onClick} className={`cp-badge ${active ? "cp-badge--on" : ""}`}
@@ -1914,22 +1919,10 @@ export default definePlugin({
                 // --- Other users via public cache ---
                 const isCurrentUser = userId === UserStore.getCurrentUser()?.id;
                 if (!isCurrentUser) {
-                    if (!Settings.seeAllCustomProfile) return nativeBadges || [];
+                    if (!Settings.seeAllCustomProfile) return [];
                     const cached = publicProfilesCache.get(userId);
-                    if (!cached?.fetched || !cached.data) return nativeBadges || [];
+                    if (!cached?.fetched || !cached.data) return [];
                     const d = cached.data;
-
-                    let badges: ProfileBadge[] = [...(nativeBadges || [])].filter(b => {
-                        const desc = (b.description || "").toLowerCase();
-                        const icon = (b.iconSrc || "").toLowerCase();
-                        const nitroKw = ["nitro", "subscriber", "abonn", "premium", "inscrit"];
-                        if (nitroKw.some(k => desc.includes(k))) return false;
-                        if (icon.includes("nitro") || icon.includes("premium")) return false;
-                        const boostKw = ["booster", "boost"];
-                        if (boostKw.some(k => desc.includes(k))) return false;
-                        if (icon.includes("boost") || icon.includes("leveling")) return false;
-                        return true;
-                    });
 
                     const extra: ProfileBadge[] = [];
                     const wantedFlags = d.badgeFlags ?? 0;
@@ -1952,52 +1945,16 @@ export default definePlugin({
                         const oldNameText = d.oldName ? `Old username: ${d.oldName}` : "Old username";
                         extra.push({ description: oldNameText, iconSrc: OLD_NAME_BADGE_ICON, position: 0, props: { style } });
                     }
-                    badges.push(...extra);
-                    return badges;
+                    return withoutNativeDuplicates(extra, nativeBadges);
                 }
 
                 // --- Own user ---
-                if (!isEnabled) return nativeBadges || [];
+                if (!isEnabled) return [];
 
-                let badges: ProfileBadge[] = [...(nativeBadges || [])];
-
-                // Determine which fake badges are active to filter real ones (avoid duplicates)
                 const nl = storedData.nitroLevel ?? -1;
                 const bm = storedData.boostMonths ?? -1;
                 const hasNitroFake = nl >= 0 && nl < NITRO_LEVELS.length;
                 const hasBoostFake = bm >= 0 && bm < BOOST_ICONS.length;
-                const wantedFlags = storedData.badgeFlags ?? 0;
-
-                // Robust filtering of native badges to avoid duplicates (multi-language support)
-                badges = badges.filter(b => {
-                    const desc = (b.description || "").toLowerCase();
-                    const icon = (b.iconSrc || "").toLowerCase();
-
-                    // Nitro / Subscriber
-                    if (isEnabled) { // ALWAYS filter native nitro/boost if plugin is enabled for this user
-                        const nitroKeywords = ["nitro", "subscriber", "abonn", "premium", "inscrit"];
-                        if (nitroKeywords.some(k => desc.includes(k))) return false;
-                        if (icon.includes("nitro") || icon.includes("premium")) return false;
-
-                        const boostKeywords = ["booster", "boost"];
-                        if (boostKeywords.some(k => desc.includes(k))) return false;
-                        if (icon.includes("boost") || icon.includes("leveling")) return false;
-                    }
-                    // Logic for other flags (Staff, Partner, HypeSquad, etc.)
-                    for (const badge of BADGES) {
-                        if (wantedFlags & badge.flag) {
-                            // Match on CDN icon hash (reliable across all locales)
-                            const iconParts = badge.icon.split("/");
-                            const iconHash = iconParts[iconParts.length - 1].replace(".png", "");
-                            if (icon.includes(iconHash)) return false;
-                            // Fallback: match EN keywords from the CDN URL path
-                            const badgeKeywords = badge.label.toLowerCase().split(" ");
-                            if (badgeKeywords.some(k => k.length > 3 && desc.includes(k))) return false;
-                        }
-                    }
-
-                    return true;
-                });
 
                 const badgeList: ProfileBadge[] = [];
 
@@ -2083,8 +2040,7 @@ export default definePlugin({
                     badgeList.push({ description: "Orbs — Apprentice", iconSrc: "https://cdn.discordapp.com/badge-icons/83d8a1eb09a8d64e59233eec5d4d5c2d.png", position: 0, props: { style } });
                 }
 
-                badges.push(...badgeList);
-                return badges;
+                return withoutNativeDuplicates(badgeList, nativeBadges);
             }
         } as ProfileBadge
     ] as ProfileBadge[],
