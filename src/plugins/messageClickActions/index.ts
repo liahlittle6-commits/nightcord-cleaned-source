@@ -470,7 +470,14 @@ async function executeAction(
                     mlDeleted: true
                 });
             } else {
-                MessageActions.deleteMessage(channel.id, msg.id);
+                Promise.resolve(MessageActions.deleteMessage(channel.id, msg.id))
+                    .then(() => FluxDispatcher.dispatch({
+                        type: "MESSAGE_DELETE",
+                        channelId: channel.id,
+                        id: msg.id,
+                        mlDeleted: true
+                    }))
+                    .catch(e => logger.error("Failed to delete message:", e));
             }
             event.preventDefault();
             break;
@@ -717,7 +724,7 @@ export default definePlugin({
             const executeSingleClick = () => {
                 if (!doubleClickFired && !doubleClickDetected && isModifierPressed(singleClickModifier) && singleClickAction !== "NONE") {
                     executeAction(singleClickAction, msg, channel, event);
-                    pressedModifiers.clear();
+                    if (singleClickModifier !== "BACKSPACE" && singleClickModifier !== "DELETE") pressedModifiers.clear();
                 }
                 resetClickState();
             };
