@@ -15,14 +15,14 @@ const CSS = `
    Wait, a pure CSS floating dock without DOM manipulation! */
 
 /* We style the button container itself to look like a floating dock */
-section[class*="container_"]:has([class*="avatar_"]) {
+section[class*="panels_"] section[class*="container_"]:has([class*="avatar_"]) {
     position: relative !important;
     overflow: visible !important;
 }
 
 /* The button container inside the user area */
 [class*="avatarWrapper_"] ~ div[class*="flex_"],
-section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] {
+section[class*="panels_"] section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] {
     position: absolute !important;
     top: -45px !important; /* Move it above the user area */
     left: 8px !important;
@@ -44,13 +44,13 @@ section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] {
 
 /* Hover effect on the dock */
 [class*="avatarWrapper_"] ~ div[class*="flex_"]:hover,
-section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"]:hover {
+section[class*="panels_"] section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"]:hover {
     transform: translateY(-2px);
     background: rgba(30, 31, 34, 0.98) !important;
 }
 
 /* Style the buttons inside the dock */
-section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] button {
+section[class*="panels_"] section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] button {
     background: none !important;
     padding: 0 !important;
     width: 32px !important;
@@ -63,12 +63,12 @@ section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] butto
     flex: 0 0 auto !important;
 }
 
-section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] button:hover {
+section[class*="panels_"] section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] button:hover {
     color: #fff !important;
     transform: scale(1.1);
 }
 
-section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] button svg {
+section[class*="panels_"] section[class*="container_"]:has([class*="avatar_"]) > div[class*="flex_"] button svg {
     width: 18px !important;
     height: 18px !important;
 }

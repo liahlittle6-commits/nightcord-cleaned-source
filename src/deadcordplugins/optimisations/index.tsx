@@ -21,7 +21,7 @@ let noGifAvatars = true;
 let noAnimatedEmoji = false;
 let noStickers = false;
 let noActivities = false;
-let limitMsgCache = true;
+let limitMsgCache = false;
 let noSoundboardPreview = true;
 let noVideoAutoplay = false;
 
@@ -90,7 +90,7 @@ const settings = definePluginSettings({
     limitMsgCache: {
         type: OptionType.BOOLEAN,
         description: "Vider le cache des messages des canaux inactifs",
-        default: true,
+        default: false,
         restartNeeded: false,
         onChange(v: boolean) { limitMsgCache = v; if (!v) stopCacheCleaner(); else startCacheCleaner(); }
     },
@@ -206,8 +206,8 @@ let _origRAF: typeof requestAnimationFrame | null = null;
 let _origCancel: typeof cancelAnimationFrame | null = null;
 let _bgFpsActive = false;
 const BG_FRAME_INTERVAL = 100;
-const _rafMap = new Map<number, any>();
-let _rafSeq = 0;
+const _rafMap = new Map<number, { timeout: ReturnType<typeof setTimeout>; cb: FrameRequestCallback; }>();
+let _rafSeq = 1_000_000_000;
 
 function applyBgFpsPatch(enable: boolean) {
     if (enable && !_bgFpsActive) {
@@ -244,41 +244,43 @@ function _onFocus() {
 }
 
 function _installRafThrottle() {
-    if (_origRAF || !_bgFpsActive || document.hidden) return;
-    _origRAF = window.requestAnimationFrame;
+    if (_origRAF || !_bgFpsActive || document.hidden || document.hasFocus()) return;
+    const nativeRAF = _origRAF = window.requestAnimationFrame;
     _origCancel = window.cancelAnimationFrame;
-    let _lastT = 0;
-    (window as any).requestAnimationFrame = function (cb: FrameRequestCallback) {
+    let lastFrame = 0;
+    window.requestAnimationFrame = (cb: FrameRequestCallback) => {
+        if (document.hasFocus() || document.hidden) {
+            _uninstallRafThrottle();
+            return nativeRAF(cb);
+        }
         const id = ++_rafSeq;
-        const now = performance.now();
-        const delay = Math.max(0, BG_FRAME_INTERVAL - (now - _lastT));
-        const tId = setTimeout(() => {
+        const delay = Math.max(0, BG_FRAME_INTERVAL - (performance.now() - lastFrame));
+        const timeout = setTimeout(() => {
             _rafMap.delete(id);
-            _lastT = performance.now();
-            cb(performance.now());
+            lastFrame = performance.now();
+            cb(lastFrame);
         }, delay);
-        _rafMap.set(id, tId);
+        _rafMap.set(id, { timeout, cb });
         return id;
     };
-    window.cancelAnimationFrame = function (id: number) {
-        const tId = _rafMap.get(id);
-        if (tId !== undefined) {
-            clearTimeout(tId);
-            _rafMap.delete(id);
-        } else if (_origCancel) {
-            _origCancel(id);
-        }
+    window.cancelAnimationFrame = (id: number) => {
+        const pending = _rafMap.get(id);
+        if (!pending) return _origCancel?.(id);
+        clearTimeout(pending.timeout);
+        _rafMap.delete(id);
     };
 }
 
 function _uninstallRafThrottle() {
     if (!_origRAF) return;
-    window.requestAnimationFrame = _origRAF;
+    const nativeRAF = _origRAF;
+    window.requestAnimationFrame = nativeRAF;
     if (_origCancel) window.cancelAnimationFrame = _origCancel;
     _origRAF = null;
     _origCancel = null;
-    for (const tId of _rafMap.values()) {
-        clearTimeout(tId);
+    for (const { timeout, cb } of _rafMap.values()) {
+        clearTimeout(timeout);
+        nativeRAF(cb);
     }
     _rafMap.clear();
 }

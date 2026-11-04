@@ -64,6 +64,7 @@ function patchStore() {
         origGetFriendIDs = store.getFriendIDs;
         store.getFriendIDs = function () {
             const real: string[] = origGetFriendIDs!.call(this);
+            if (!fakeState.size) return real;
             const extra = [...fakeState.entries()].filter(([, s]) => s === "accepted").map(([id]) => id);
             return [...new Set([...real, ...extra])];
         };
@@ -346,6 +347,7 @@ function patchChannelStore() {
         origGetSorted = store.getSortedPrivateChannels;
         store.getSortedPrivateChannels = function () {
             const real = origGetSorted!.call(this) ?? [];
+            if (!fakeDMChannelObjects.size) return real;
             return [...real, ...fakeDMChannelObjects.values()];
         };
     }

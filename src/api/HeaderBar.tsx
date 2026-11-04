@@ -142,38 +142,35 @@ const NON_REACT_SELECTORS = [
     ".nai-nav-item",
 ];
 
-function hideNonReactElements(hide: boolean) {
-    let count = 0;
-    for (const sel of NON_REACT_SELECTORS) {
-        try {
-            document.querySelectorAll(sel).forEach(el => {
-                (el as HTMLElement).style.display = hide ? "none" : "";
-                count++;
-            });
-        } catch { }
-    }
-    console.log("[StealthMode] hideNonReact hide=" + hide + " count=" + count);
+function ensureStealthStyle() {
+    if (document.getElementById("deadcord-stealth-style")) return;
+    const style = document.createElement("style");
+    style.id = "deadcord-stealth-style";
+    style.textContent = `${NON_REACT_SELECTORS.map(sel => `body.deadcord-stealth ${sel}`).join(",")}{display:none!important}`;
+    (document.head ?? document.documentElement).appendChild(style);
+}
+
+function applyStealthClass() {
+    try {
+        ensureStealthStyle();
+        document.body?.classList.toggle("deadcord-stealth", _stealthActive);
+    } catch { }
 }
 
 export function syncStealthBodyClass() {
-    try { if (_stealthActive) document.body?.classList.add("deadcord-stealth"); else document.body?.classList.remove("deadcord-stealth"); } catch { }
-    hideNonReactElements(_stealthActive);
+    applyStealthClass();
 }
 
 export function toggleStealthMode() {
     _stealthActive = !_stealthActive;
     persistStealth(_stealthActive);
-    hideNonReactElements(_stealthActive);
+    applyStealthClass();
     _notifyStealthChange();
-    try { if (_stealthActive) document.body?.classList.add("deadcord-stealth"); else document.body?.classList.remove("deadcord-stealth"); } catch { }
-    console.log("[StealthMode] toggled →", _stealthActive);
     return _stealthActive;
 }
 
-if (_stealthActive) {
-    try { hideNonReactElements(true); } catch { }
-    try { document.body?.classList.add("deadcord-stealth"); } catch { }
-}
+if (document.body) applyStealthClass();
+else document.addEventListener("DOMContentLoaded", applyStealthClass, { once: true });
 
 try {
     document.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -183,31 +180,6 @@ try {
             toggleStealthMode();
         }
     }, true);
-} catch { }
-
-try {
-    let stealthObserver: MutationObserver | null = null;
-    const startObserver = () => {
-        if (stealthObserver) return;
-        stealthObserver = new MutationObserver(() => {
-            if (_stealthActive) hideNonReactElements(true);
-        });
-        const target = document.body || document.documentElement;
-        if (target) {
-            stealthObserver.observe(target, { childList: true, subtree: true });
-        }
-    };
-    const stopObserver = () => {
-        if (stealthObserver) { stealthObserver.disconnect(); stealthObserver = null; }
-    };
-    if (_stealthActive) {
-        if (document.body) startObserver();
-        else document.addEventListener("DOMContentLoaded", startObserver);
-    }
-    window.addEventListener("deadcord-stealth-change", () => {
-        if (_stealthActive) startObserver();
-        else stopObserver();
-    });
 } catch { }
 
 const stealthListeners = new Set<() => void>();

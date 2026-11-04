@@ -225,6 +225,9 @@ let cachedFakeUser: any = null;
 let cachedDataHash: number = 0;
 let _trueOriginalUser: any = null;
 let _dataVersion: number = 0;
+const fakeUserCache = new WeakMap<object, { data: CustomProfileData; result: any; }>();
+const fakeProfileCache = new WeakMap<object, { data: CustomProfileData; result: any; }>();
+const fakeMemberCache = new WeakMap<object, { version: number; result: any; }>();
 let allAccountsData: Record<string, CustomProfileData> = {};
 let allAccountsEnabled: Record<string, boolean> = {};
 
@@ -1739,7 +1742,11 @@ export default definePlugin({
                     if (Settings.seeAllCustomProfile) {
                         const cached = publicProfilesCache.get(id);
                         if (cached?.fetched && cached.data) {
-                            return this.fakeOtherUser(user, cached.data);
+                            const hit = fakeUserCache.get(user);
+                            if (hit?.data === cached.data) return hit.result;
+                            const result = this.fakeOtherUser(user, cached.data);
+                            fakeUserCache.set(user, { data: cached.data, result });
+                            return result;
                         }
                     }
                     
@@ -1760,8 +1767,11 @@ export default definePlugin({
 
                     // Only patch own user — never expose custom nick to other users' views
                     if (isEnabled && isMe(userId)) {
+                        const hit = fakeMemberCache.get(member);
+                        if (hit?.version === _dataVersion) return hit.result;
                         const patched = { ...member };
                         if (storedData.username) patched.nick = storedData.globalName || storedData.username;
+                        fakeMemberCache.set(member, { version: _dataVersion, result: patched });
                         return patched;
                     }
 
@@ -1789,7 +1799,11 @@ export default definePlugin({
                             fetchPublicProfileIfNeeded(userId);
                             const cached = publicProfilesCache.get(userId);
                             if (cached?.fetched && cached.data && profile) {
-                                return this.hookOtherUserProfile(profile, cached.data);
+                                const hit = fakeProfileCache.get(profile);
+                                if (hit?.data === cached.data) return hit.result;
+                                const result = this.hookOtherUserProfile(profile, cached.data);
+                                fakeProfileCache.set(profile, { data: cached.data, result });
+                                return result;
                             }
                         }
                         

@@ -271,6 +271,9 @@ async function applyWallpaper() {
     z-index: 2147483647;
     pointer-events: none;
     overflow: hidden;
+    contain: strict;
+    will-change: opacity;
+    transform: translateZ(0);
     opacity: ${opacity};
     ${filterCSS}
 }
