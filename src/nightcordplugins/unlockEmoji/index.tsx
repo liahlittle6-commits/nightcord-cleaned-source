@@ -26,7 +26,7 @@ import definePlugin, { OptionType } from "@utils/types";
 import type { Emoji, Message, Sticker } from "@vencord/discord-types";
 import { StickerFormatType } from "@vencord/discord-types/enums";
 import { findByCodeLazy, findByPropsLazy, proxyLazyWebpack } from "@webpack";
-import { Alerts, ChannelStore, DraftType, EmojiStore, FluxDispatcher, Forms, GuildMemberStore, IconUtils, lodash, Parser, PermissionsBits, PermissionStore, StickersStore, UploadHandler, UserSettingsActionCreators, UserSettingsProtoStore, UserStore } from "@webpack/common";
+import { Alerts, ChannelStore, DraftType, EmojiStore, FluxDispatcher, Forms, GuildMemberStore, IconUtils, PermissionsBits, PermissionStore, StickersStore, UploadHandler, UserSettingsActionCreators, UserSettingsProtoStore, UserStore } from "@webpack/common";
 import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import type { ReactElement, ReactNode } from "react";
 
@@ -220,8 +220,8 @@ export default definePlugin({
                 },
                 {
                     // Disallow the emoji for premium locked if the intention doesn't allow it
-                    match: /!(\i\.\i\.canUseEmojisEverywhere\(\i\))/,
-                    replace: m => `(${m}&&!${IS_BYPASSEABLE_INTENTION})`
+                    match: /(?<=!\(\i\|\|)\i\.\i\.canUseEmojisEverywhere\(\i\)/,
+                    replace: check => `(${check}||${IS_BYPASSEABLE_INTENTION})`
                 },
                 {
                     // Allow animated emojis to be used if the intention allows it
@@ -281,9 +281,7 @@ export default definePlugin({
         },
         // Allow users to use custom client themes
         {
-            find: "customUserThemeSettings:{",
-            // Discord has two separate modules for treatments 1 and 2
-            all: true,
+            find: ".CLIENT_THEMES_EDITOR?",
             replacement: {
                 match: /(?<=\i=)\(0,\i\.\i\)\(\i\.\i\.TIER_2\)(?=,|;)/g,
                 replace: "true"
@@ -291,20 +289,11 @@ export default definePlugin({
         },
         {
             find: '["strong","em","u","text","inlineCode","s","spoiler"]',
-            replacement: [
-                {
-                    // Call our function to decide whether the emoji link should be kept or not
-                    predicate: () => settings.store.transformEmojis,
-                    match: /1!==(\i)\.length\|\|1!==\i\.length/,
-                    replace: (m, content) => `${m}||$self.shouldKeepEmojiLink(${content}[0])`
-                },
-                {
-                    // Patch the rendered message content to add fake nitro emojis or remove sticker links
-                    predicate: () => settings.store.transformEmojis || settings.store.transformStickers,
-                    match: /(?=return{hasSpoilerEmbeds:\i,hasBailedAst:\i,content:(\i))/,
-                    replace: (_, content) => `${content}=$self.patchFakeNitroEmojisOrRemoveStickersLinks(${content},arguments[2]?.formatInline);`
-                }
-            ]
+            predicate: () => settings.store.transformEmojis || settings.store.transformStickers,
+            replacement: {
+                match: /\(\{ast:(\i)(?=,inline:\i)/,
+                replace: "({ast:$self.transformAst($1)"
+            }
         },
         {
             find: "}renderStickersAccessories(",
@@ -359,8 +348,8 @@ export default definePlugin({
             predicate: () => settings.store.transformEmojis,
             replacement: {
                 // Add the fake nitro emoji notice
-                match: /(?<=emojiDescription:)(\i)(?<=\1=\(\i=>\{.+?\}\)\((\i)\)[,;].+?)/,
-                replace: (_, reactNode, props) => `$self.addFakeNotice(${FakeNoticeType.Emoji},${reactNode},!!${props}?.fakeNitroNode?.fake)`
+                match: /(?<=emojiDescription:)(\i)(?<=\1=function\(\i\)\{let\{sourceType:.+?)/,
+                replace: (_, reactNode) => `$self.addFakeNotice(${FakeNoticeType.Emoji},${reactNode},!!arguments[0]?.fakeNitroNode?.fake)`
             }
         },
         // Separate patch for allowing using custom app icons
@@ -483,107 +472,58 @@ export default definePlugin({
         if (!Array.isArray(child.props.children)) child.props.children = [child.props.children];
     },
 
-    patchFakeNitroEmojisOrRemoveStickersLinks(content: Array<any>, inline: boolean) {
-        // If content has more than one child or it's a single ReactElement like a header, list or span
-        if ((content.length > 1 || typeof content[0]?.type === "string") && !settings.store.transformCompoundSentence) return content;
+    transformAst(ast: any[]) {
+        try {
+            if (!settings.store.transformCompoundSentence && ast.length > 1) {
+                return ast;
+            }
+            // Filter out sticker links. These are transformed into actual stickers later, so we don't want duplicate links
+            if (settings.store.transformStickers) {
+                ast = ast.filter(node => {
+                    const { type, target } = node;
 
-        let nextIndex = content.length;
+                    if (type !== "link") return true;
+                    if (fakeNitroStickerRegex.test(target)) return false;
 
-        const transformLinkChild = (child: ReactElement<any>) => {
+                    const gifStickerLinkMatch = target.match(fakeNitroGifStickerRegex);
+                    const isGifStickerLink = gifStickerLinkMatch && StickersStore.getStickerById(gifStickerLinkMatch[1]);
+
+                    return !isGifStickerLink;
+                });
+            }
+
             if (settings.store.transformEmojis) {
-                const fakeNitroMatch = child.props.href.match(fakeNitroEmojiRegex);
-                if (fakeNitroMatch) {
+                ast = ast.map(node => {
+                    const { type, target } = node;
+
+                    if (type !== "link") return node;
+
+                    const fakeNitroMatch = target.match(fakeNitroEmojiRegex);
+                    if (!fakeNitroMatch) return node;
+
                     let url: URL | null = null;
                     try {
-                        url = new URL(child.props.href);
+                        url = new URL(target);
                     } catch { }
 
-                    const emojiName = EmojiStore.getCustomEmojiById(fakeNitroMatch[1])?.name ?? url?.searchParams.get("name") ?? "FakeNitroEmoji";
-                    const isAnimated = fakeNitroMatch[2] === "gif" || url?.searchParams.get("animated") === "true";
+                    const emojiId = fakeNitroMatch[1];
+                    const emojiName = EmojiStore.getCustomEmojiById(emojiId)?.name ?? url?.searchParams.get("name") ?? "FakeNitroEmoji";
+                    const animated = fakeNitroMatch[2] === "gif" || url?.searchParams.get("animated") === "true";
 
-                    return Parser.defaultRules.customEmoji.react({
-                        jumboable: !inline && content.length === 1 && typeof content[0].type !== "string",
-                        animated: isAnimated,
-                        emojiId: fakeNitroMatch[1],
-                        name: emojiName,
+                    return {
+                        animated,
+                        emojiId,
+                        name: `:${emojiName}:`,
+                        type: "customEmoji",
                         fake: true
-                    }, void 0, { key: String(nextIndex++) });
-                }
+                    };
+                });
             }
-
-            if (settings.store.transformStickers) {
-                if (fakeNitroStickerRegex.test(child.props.href)) return null;
-
-                const gifMatch = child.props.href.match(fakeNitroGifStickerRegex);
-                if (gifMatch) {
-                    // There is no way to differentiate a regular gif attachment from a fake nitro animated sticker, so we check if the StickersStore contains the id of the fake sticker
-                    if (StickersStore.getStickerById(gifMatch[1])) return null;
-                }
-            }
-
-            return child;
-        };
-
-        const transformChild = (child: ReactElement<any>) => {
-            if (child?.props?.trusted != null) return transformLinkChild(child);
-            if (child?.props?.children != null) {
-                if (!Array.isArray(child.props.children)) {
-                    child.props.children = modifyChild(child.props.children);
-                    return child;
-                }
-
-                child.props.children = modifyChildren(child.props.children);
-                if (child.props.children.length === 0) return null;
-                return child;
-            }
-
-            return child;
-        };
-
-        const modifyChild = (child: ReactElement<any>) => {
-            const newChild = transformChild(child);
-
-            if (newChild?.type === "ul" || newChild?.type === "ol") {
-                this.ensureChildrenIsArray(newChild);
-                if (newChild.props.children.length === 0) return null;
-
-                let listHasAnItem = false;
-                for (const [index, child] of newChild.props.children.entries()) {
-                    if (child == null) {
-                        delete newChild.props.children[index];
-                        continue;
-                    }
-
-                    this.ensureChildrenIsArray(child);
-                    if (child.props.children.length > 0) listHasAnItem = true;
-                    else delete newChild.props.children[index];
-                }
-
-                if (!listHasAnItem) return null;
-
-                newChild.props.children = this.clearEmptyArrayItems(newChild.props.children);
-            }
-
-            return newChild;
-        };
-
-        const modifyChildren = (children: Array<ReactElement<any>>) => {
-            for (const [index, child] of children.entries()) children[index] = modifyChild(child);
-
-            children = this.clearEmptyArrayItems(children);
-
-            return children;
-        };
-
-        try {
-            const newContent = modifyChildren(lodash.cloneDeep(content));
-            this.trimContent(newContent);
-
-            return newContent;
-        } catch (err) {
-            new Logger("FakeNitro").error(err);
-            return content;
+        } catch (e) {
+            new Logger("FakeNitro").error("Error transforming AST:", e);
         }
+
+        return ast;
     },
 
     patchFakeNitroStickers(stickers: Array<any>, message: Message) {
@@ -683,10 +623,6 @@ export default definePlugin({
 
             return true;
         });
-    },
-
-    shouldKeepEmojiLink(link: any) {
-        return link.target && fakeNitroEmojiRegex.test(link.target);
     },
 
     addFakeNotice(type: FakeNoticeType, node: Array<ReactNode>, fake: boolean) {

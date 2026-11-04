@@ -21,20 +21,18 @@ import "./styles.css";
 import { showNotification } from "@api/Notifications";
 import { definePluginSettings } from "@api/Settings";
 import ErrorBoundary from "@components/ErrorBoundary";
+import { Paragraph } from "@components/Paragraph";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { findComponentByCodeLazy, findCssClassesLazy, findStoreLazy } from "@webpack";
-import { Constants, React, RestAPI, SettingsRouter, Tooltip } from "@webpack/common";
+import { Constants, React, RestAPI, SettingsRouter, Tooltip, useState } from "@webpack/common";
 
-import { RenameButton } from "./components/RenameButton";
+import { NewButton, RenameButton } from "./components/RenameButton";
 import { Session, SessionInfo } from "./types";
-import { fetchNamesFromDataStore, getDefaultName, GetOsColor, GetPlatformIcon, savedSessionsCache, saveSessionsToDataStore } from "./utils";
+import { cl, fetchNamesFromDataStore, getDefaultName, GetOsColor, GetPlatformIcon, savedSessionsCache, saveSessionsToDataStore } from "./utils";
 
 const AuthSessionsStore = findStoreLazy("AuthSessionsStore");
-
 const TimestampClasses = findCssClassesLazy("timestamp", "blockquoteContainer");
-const SessionIconClasses = findCssClassesLazy("sessionIcon");
-
 const BlobMask = findComponentByCodeLazy("!1,lowerBadgeSize:");
 
 const settings = definePluginSettings({
@@ -55,69 +53,77 @@ const settings = definePluginSettings({
 export default definePlugin({
     name: "BetterSessions",
     enabledByDefault: true,
-    description: "Improves Security > Sessions tab: precise timestamps, device renfriendng, and alerts on new connection detection.",
-    authors: [Devs.frienda],
-
+    description: "Enhances the sessions (devices) menu. Allows you to view exact timestamps, give each session a custom name, and receive notifications about new sessions.",
+    authors: [Devs.amia],
+    tags: ["Notifications", "Customisation", "Utility"],
     settings: settings,
 
     patches: [
         {
-            find: "#{intl::AUTH_SESSIONS_SESSION_LOG_OUT}",
+            find: "#{intl::AUTH_SESSIONS_OS_UNKNOWN}",
             replacement: [
                 {
-                    match: /({variant:"eyebrow",className:\i\.\i,children:).{70,110}{children:"\\xb7"}\),\(0,\i\.\i\)\("span",{children:\i\[\d+\]}\)\]}\)\]/,
-                    replace: "$1$self.renderName(arguments[0])"
+                    match: /(#{intl::AUTH_SESSIONS_ACTIVE_RECENTLY}.{0,230}role:"listitem",children:\[.{0,15},\{icon:)\i/,
+                    replace: "$1()=>$self.renderIcon(arguments[0])"
                 },
                 {
-                    match: /({variant:"text-sm\/medium",className:\i\.\i,children:.{70,110}{children:"\\xb7"}\),\(0,\i\.\i\)\("span",{children:)(\i\[\d+\])}/,
-                    replace: "$1$self.renderTimestamp({...arguments[0],timeLabel:$2})}"
+                    match: /("horizontal",gap:"xs",children:)\[.{0,250}"text-subtle",children:\i\}\)\]\}\),/,
+                    replace: "$1$self.renderName(arguments[0])}),"
                 },
                 {
-                    match: /children:\[(?=.{0,125}?width:"32")(?<=,icon:(\i)\}.+?)/,
-                    replace: "children:[$self.renderIcon({...arguments[0],DeviceIcon:$1}),false&&"
-                }
+                    match: /("text-muted",children:)\i(?=\}\)\]\}\),.{0,120}\.client_info\?\.location)/,
+                    replace: "$1$self.renderDescription(arguments[0])"
+                },
+                {
+                    match: /:\i\(\i\.approx_last_used_time\).{0,40}\(0,\i\.jsxs?\)\(\i,\{/,
+                    replace: "$&session:arguments[0]?.session,"
+                },
             ]
-        }
+        },
     ],
 
     renderName: ErrorBoundary.wrap(({ session }: SessionInfo) => {
         const savedSession = savedSessionsCache.get(session.id_hash);
 
-        const state = React.useState(savedSession?.name ? `${savedSession.name}*` : getDefaultName(session.client_info));
-        const [title, setTitle] = state;
-
+        const state = useState(savedSession?.name ? `${savedSession.name}*` : getDefaultName(session.client_info));
+        const [title] = state;
+        // Show a "NEW" badge if the session is seen for the first time
         return (
             <>
-                <span>{title}</span>
-                {(savedSession == null || savedSession.isNew) && (
-                    <div
-                        className="vc-addon-badge"
-                        style={{
-                            backgroundColor: "#ED4245",
-                            marginLeft: "2px"
-                        }}
-                    >
-                        NEW
-                    </div>
-                )}
-                <RenameButton session={session} state={state} />
+                <Paragraph size="md" weight="semibold" style={{ color: "var(--text-strong, var(--text-default))" }}>{title}</Paragraph>
+                <div className={cl("footer-buttons")}>
+                    {(savedSession == null || savedSession.isNew) && (
+                        <NewButton />
+                    )}
+                    <RenameButton session={session} state={state} />
+                </div>
             </>
         );
     }, { noop: true }),
 
-    renderTimestamp: ErrorBoundary.wrap(({ session, timeLabel }: { session: Session, timeLabel: string; }) => {
+    renderDescription: ErrorBoundary.wrap(({ session, description }: { session: Session, description: string; }) => {
+        const [label, timeLabel] = description.split(" \xb7 ");
+
         return (
-            <Tooltip text={session.approx_last_used_time.toLocaleString()}>
-                {props => (
-                    <span {...props} className={TimestampClasses.timestamp}>
-                        {timeLabel}
-                    </span>
+            <div className={cl("description")}>
+                <Paragraph size="sm" weight="normal" style={{ color: "var(--text-muted, var(--text-default))" }}>{label}</Paragraph>
+                {timeLabel && (
+                    <>
+                        {" \xb7 "}
+                        <Tooltip text={session.approx_last_used_time.toLocaleString()}>
+                            {props => (
+                                <span {...props} className={TimestampClasses.timestamp}>
+                                    {timeLabel}
+                                </span>
+                            )}
+                        </Tooltip>
+                    </>
                 )}
-            </Tooltip>
+            </div>
         );
     }, { noop: true }),
 
-    renderIcon: ErrorBoundary.wrap(({ session, DeviceIcon }: { session: Session, DeviceIcon: React.ComponentType<any>; }) => {
+    renderIcon: ErrorBoundary.wrap(({ session, icon: DeviceIcon }: { session: Session; icon: React.ComponentType<any>; }) => {
         const PlatformIcon = GetPlatformIcon(session.client_info.platform);
 
         return (
@@ -126,26 +132,17 @@ export default definePlugin({
                 style={{ cursor: "unset" }}
                 selected={false}
                 lowerBadge={
-                    <div
-                        style={{
-                            width: "20px",
-                            height: "20px",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            overflow: "hidden",
-                            borderRadius: "50%",
-                            backgroundColor: "var(--interactive-icon-default)",
-                            color: "var(--background-base-lower)",
-                        }}
-                    >
-                        <PlatformIcon width={14} height={14} />
+                    <div className={cl("lowerBadge")}>
+                        <PlatformIcon width={14} height={14} className={cl("lowerBadge-icon")} />
                     </div>
                 }
-                lowerBadgeSize={{ width: 20, height: 20 }}
+                lowerBadgeSize={{
+                    width: 20,
+                    height: 20
+                }}
             >
                 <div
-                    className={SessionIconClasses.sessionIcon}
+                    className={cl("icon")}
                     style={{ backgroundColor: GetOsColor(session.client_info.os) }}
                 >
                     <DeviceIcon size="md" color="currentColor" />
@@ -165,7 +162,7 @@ export default definePlugin({
             savedSessionsCache.set(session.id_hash, { name: "", isNew: true });
             showNotification({
                 title: "BetterSessions",
-                body: `New session:\n${session.client_info.os} \u00b7 ${session.client_info.platform} \u00b7 ${session.client_info.location}`,
+                body: `New session:\n${session.client_info.os} · ${session.client_info.platform} · ${session.client_info.location}`,
                 permanent: true,
                 onClick: () => SettingsRouter.openUserSettings("sessions_panel")
             });
@@ -176,18 +173,23 @@ export default definePlugin({
 
     flux: {
         USER_SETTINGS_ACCOUNT_RESET_AND_CLOSE_FORM() {
-            const lastFetchedHashes: string[] = AuthSessionsStore.getSessions().map((session: SessionInfo["session"]) => session.id_hash);
+            const lastFetchedHashes: string[] = AuthSessionsStore.getSessions().map(session => session.id_hash);
 
+            // Add new sessions to cache
             lastFetchedHashes.forEach(idHash => {
                 if (!savedSessionsCache.has(idHash)) savedSessionsCache.set(idHash, { name: "", isNew: false });
             });
 
+            // Delete removed sessions from cache
             if (lastFetchedHashes.length > 0) {
                 savedSessionsCache.forEach((_, idHash) => {
                     if (!lastFetchedHashes.includes(idHash)) savedSessionsCache.delete(idHash);
                 });
             }
 
+            // Dismiss the "NEW" badge of all sessions.
+            // Since the only way for a session to be marked as "NEW" is going to the Devices tab,
+            // closing the settings means they've been viewed and are no longer considered new.
             savedSessionsCache.forEach(data => {
                 data.isNew = false;
             });
@@ -198,6 +200,7 @@ export default definePlugin({
     async start() {
         await fetchNamesFromDataStore();
 
+        this.checkNewSessions();
         if (settings.store.backgroundCheck) {
             this.checkInterval = setInterval(this.checkNewSessions, settings.store.checkInterval * 60 * 1000);
         }
