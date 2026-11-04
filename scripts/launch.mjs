@@ -1,5 +1,5 @@
 /*
- * Nightcord — Launch Discord with Nightcord injected
+ * Deadcord — Launch Discord with Deadcord injected
  * Builds, injects into Discord, and launches it. No external tools needed.
  *
  * Usage: pnpm start
@@ -52,7 +52,7 @@ function killDiscord(channel) {
 
 // ── Build ──────────────────────────────────────────────────────────────────
 function build() {
-    console.log("[launch] Building Nightcord...");
+    console.log("[launch] Building Deadcord...");
     execSync("node --require=./scripts/suppressExperimentalWarnings.js scripts/build/build.mjs --standalone", {
         cwd: BASE_DIR,
         stdio: "inherit"
@@ -129,22 +129,22 @@ function inject(discord) {
         main: "index.js"
     }, null, 2));
 
-    // Write index.js — loads nightcord-index.js which handles everything
+    // Write index.js — loads deadcord-index.js which handles everything
     writeFileSync(join(appDir, "index.js"), `"use strict";
 const path = require("path");
 const fs = require("fs");
 
-// Nightcord injection entry point
-const nightcordEntry = path.join(__dirname, "nightcord-index.js");
+// Deadcord injection entry point
+const deadcordEntry = path.join(__dirname, "deadcord-index.js");
 
-if (fs.existsSync(nightcordEntry)) {
-    require(nightcordEntry);
+if (fs.existsSync(deadcordEntry)) {
+    require(deadcordEntry);
 } else {
-    console.error("[Nightcord] nightcord-index.js not found, falling back to patcher.js");
+    console.error("[Deadcord] deadcord-index.js not found, falling back to patcher.js");
     try {
         require(path.join(__dirname, "dist", "desktop", "patcher.js"));
     } catch (e) {
-        console.error("[Nightcord] Injection failed:", e.message);
+        console.error("[Deadcord] Injection failed:", e.message);
         const backup = path.join(__dirname, "..", "_app.asar");
         if (fs.existsSync(backup)) {
             require(backup);
@@ -153,8 +153,8 @@ if (fs.existsSync(nightcordEntry)) {
 }
 `);
 
-    // Copy nightcord-index.js and nightcord-preload.js into app/
-    for (const file of ["nightcord-index.js", "nightcord-preload.js"]) {
+    // Copy deadcord-index.js and deadcord-preload.js into app/
+    for (const file of ["deadcord-index.js", "deadcord-preload.js"]) {
         const src = join(BASE_DIR, file);
         const dst = join(appDir, file);
         if (existsSync(src)) {
@@ -209,4 +209,4 @@ killDiscord(discord.channel);
 inject(discord);
 launchDiscord(discord);
 
-console.log("[launch] Done! Discord is starting with Nightcord.");
+console.log("[launch] Done! Discord is starting with Deadcord.");

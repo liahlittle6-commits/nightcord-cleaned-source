@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nightcord Installer</title>
+  <title>Deadcord Installer</title>
   <!-- Async font load: doesn't block first paint -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -554,7 +554,7 @@
     }
 
 
-    /* ── Nightcord Options sub-modal ───────────────────────────────────── */
+    /* ── Deadcord Options sub-modal ───────────────────────────────────── */
     .nc-options-overlay {
       position: fixed; top: 42px; left: 0; right: 0; bottom: 0;
       background: rgba(11,11,24,0.92);
@@ -665,7 +665,7 @@
     <div class="titlebar">
       <div class="titlebar-left">
         <img src="{{ICON_BASE64}}" class="logo-mark" />
-        <span class="titlebar-title" style="cursor: pointer;" onclick="window.nightcord.openUrl('https://nightcord.ru/')">Nightcord Installer</span>
+        <span class="titlebar-title" style="cursor: pointer;" onclick="window.deadcord.openUrl('https://nightcord.ru/')">Deadcord Installer</span>
         <span class="titlebar-version" id="titlebar-version">...</span>
       </div>
       <div class="titlebar-right">
@@ -676,15 +676,15 @@
           </svg>
         </button>
         <div class="titlebar-controls">
-          <button class="btn-minimize" onclick="window.nightcord.minimizeApp()"></button>
-          <button class="btn-close" onclick="window.nightcord.closeApp()"></button>
+          <button class="btn-minimize" onclick="window.deadcord.minimizeApp()"></button>
+          <button class="btn-close" onclick="window.deadcord.closeApp()"></button>
         </div>
       </div>
     </div>
 
     <div class="content">
       <div class="header">
-        <h1>Nightcord</h1>
+        <h1>Deadcord</h1>
         <p>// discord client mod â€” select your installation target</p>
       </div>
 
@@ -707,7 +707,7 @@
 
       <div class="actions">
         <button class="btn btn-primary" id="btn-inject" disabled onclick="handleInject()">
-          Inject Nightcord
+          Inject Deadcord
         </button>
         <button class="btn btn-danger" id="btn-uninject" disabled onclick="handleUninject()">
           Uninject
@@ -737,19 +737,19 @@
   <div class="settings-overlay" id="settings-overlay" onclick="closeSettingsModal(event)">
     <div class="settings-container" onclick="event.stopPropagation()">
       <div class="settings-header">
-        <h2>Nightcord Links & Settings</h2>
+        <h2>Deadcord Links & Settings</h2>
         <button class="settings-close-btn" onclick="toggleSettingsModal()">âœ•</button>
       </div>
       <div class="settings-content">
-        <p class="settings-desc">Access official Nightcord links and community resources.</p>
+        <p class="settings-desc">Access official Deadcord links and community resources.</p>
         <div class="settings-buttons">
-          <button class="btn-setting-link btn-discord" onclick="window.nightcord.openUrl('https://discord.gg/nightcord')">
+          <button class="btn-setting-link btn-discord" onclick="window.deadcord.openUrl('https://discord.gg/nightcord')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="btn-link-icon">
               <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.02.06.03.09.02c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12z"/>
             </svg>
             <span>Join Discord Server</span>
           </button>
-          <button class="btn-setting-link btn-website" onclick="window.nightcord.openUrl('https://nightcord.ru')">
+          <button class="btn-setting-link btn-website" onclick="window.deadcord.openUrl('https://nightcord.ru')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-link-icon">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="2" y1="12" x2="22" y2="12"></line>
@@ -761,9 +761,9 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="btn-link-icon" style="color:var(--accent)">
               <path fill-rule="evenodd" d="M10.56 1.1c-.46.05-.7.53-.64.98.18 1.16-.19 2.2-.98 2.53-.8.33-1.79-.15-2.49-1.1-.27-.36-.78-.52-1.14-.24-.77.59-1.45 1.27-2.04 2.04-.28.36-.12.87.24 1.14.96.7 1.43 1.7 1.1 2.49-.33.8-1.37 1.16-2.53.98-.45-.07-.93.18-.99.64a11.1 11.1 0 0 0 0 2.88c.06.46.54.7.99.64 1.16-.18 2.2.19 2.53.98.33.8-.14 1.79-1.1 2.49-.36.27-.52.78-.24 1.14.59.77 1.27 1.45 2.04 2.04.36.28.87.12 1.14-.24.7-.95 1.7-1.43 2.49-1.1.8.33 1.16 1.37.98 2.53-.07.45.18.93.64.99a11.1 11.1 0 0 0 2.88 0c.46-.06.7-.54.64-.99-.18-1.16.19-2.2.98-2.53.8-.33 1.79.14 2.49 1.1.27.36.78.52 1.14.24.77-.59 1.45-1.27 2.04-2.04.28-.36.12-.87-.24-1.14-.96-.7-1.43-1.7-1.1-2.49.33-.8 1.37-1.16 2.53-.98.45.07.93-.18.99-.64a11.1 11.1 0 0 0 0-2.88c-.06-.46-.54-.7-.99-.64-1.16.18-2.2-.19-2.53-.98-.33-.8.14-1.79 1.1-2.49.36-.27.52-.78.24-1.14a11.07 11.07 0 0 0-2.04-2.04c-.36-.28-.87-.12-1.14.24-.7.96-1.7 1.43-2.49 1.1-.8-.33-1.16-1.37-.98-2.53.07-.45-.18-.93-.64-.99a11.1 11.1 0 0 0-2.88 0ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" clip-rule="evenodd"/>
             </svg>
-            <span>Nightcord Options</span>
+            <span>Deadcord Options</span>
           </button>
-          <button class="btn-setting-link btn-github" onclick="window.nightcord.openUrl('https://git.nightcord.ru/nightcord/nightcord')">
+          <button class="btn-setting-link btn-github" onclick="window.deadcord.openUrl('https://git.nightcord.ru/nightcord/nightcord')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="btn-link-icon">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577v-2.17c-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.73.083-.73 1.205.084 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.775.42-1.305.763-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.467-2.38 1.235-3.22-.123-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23.957-.266 1.98-.398 3-.403 1.02.005 2.043.137 3 .403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.24 2.873.118 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.803 5.625-5.475 5.92.43.37.823 1.102.823 2.222v3.293c0 .32.218.694.825.577C20.565 21.797 24 17.298 24 12c0-6.63-5.37-12-12-12z"/>
             </svg>
@@ -773,7 +773,7 @@
           <div class="update-result" id="update-result"></div>
         </div>
       </div>
-      <div class="settings-dev-footer">dev by ahki__ (nightcord)</div>
+      <div class="settings-dev-footer">dev by ahki__ (deadcord)</div>
     </div>
   </div>
 
@@ -823,7 +823,7 @@
       const p = input.value.trim();
       if (!p) return;
 
-      const injected = await window.nightcord.isInjected(p);
+      const injected = await window.deadcord.isInjected(p);
       const entry = {
         name: 'Manual',
         path: p,
@@ -842,7 +842,7 @@
       setStatus('loading', 'Detecting Discord installations...');
 
       try {
-        const found = await window.nightcord.detectDiscord();
+        const found = await window.deadcord.detectDiscord();
         discords = found || [];
       } catch(e) {
         discords = [];
@@ -868,9 +868,9 @@
         const icon = ICONS[d.name] || { emoji: 'âšª', cls: 'stable' };
         let injected = false;
         let hasThirdParty = false;
-        try { injected = await window.nightcord.isInjected(d.path); } catch {}
+        try { injected = await window.deadcord.isInjected(d.path); } catch {}
         if (!injected) {
-          try { hasThirdParty = await window.nightcord.hasThirdPartyMod(d.path); } catch {}
+          try { hasThirdParty = await window.deadcord.hasThirdPartyMod(d.path); } catch {}
         }
         renderCard(d, i, injected, icon.cls, hasThirdParty);
       }
@@ -925,11 +925,11 @@
       const card = document.querySelectorAll('.discord-card')[index];
       const isThirdParty = card && card.dataset.thirdParty === '1';
       if (isThirdParty) {
-        setStatus('loading', `âš  ${selected.name}: Vencord/Equicord detected â€” clicking Inject will replace it with Nightcord.`);
-        document.getElementById('btn-inject').textContent = 'Replace with Nightcord';
+        setStatus('loading', `âš  ${selected.name}: Vencord/Equicord detected â€” clicking Inject will replace it with Deadcord.`);
+        document.getElementById('btn-inject').textContent = 'Replace with Deadcord';
       } else {
         setStatus('idle', `Selected: ${selected.name} â€” ${selected.path}`);
-        document.getElementById('btn-inject').textContent = 'Inject Nightcord';
+        document.getElementById('btn-inject').textContent = 'Inject Deadcord';
       }
     }
 
@@ -951,7 +951,7 @@
 
       // Use startInject (non-blocking) + poll getInjectStatus
       // This avoids the WebView2 COM proxy 30s timeout on large downloads
-      const started = window.nightcord.startInject(selected.path);
+      const started = window.deadcord.startInject(selected.path);
       if (!started || !started.started) {
         setLoading(false);
         setStatus('error', `Error: ${started?.error || 'Could not start inject'}`);
@@ -961,7 +961,7 @@
       // Poll every 500ms for status
       await new Promise((resolve) => {
         const interval = setInterval(() => {
-          const status = window.nightcord.getInjectStatus();
+          const status = window.deadcord.getInjectStatus();
           if (status.state === 'done') {
             clearInterval(interval);
             resolve({ success: true });
@@ -976,7 +976,7 @@
           setLoading(true, "Finalizing installation...", 100);
           setTimeout(async () => {
             setLoading(false);
-            setStatus('success', `âœ“ Nightcord injected into ${selected.name}! Restart Discord.`);
+            setStatus('success', `âœ“ Deadcord injected into ${selected.name}! Restart Discord.`);
             await loadDiscords();
             const idx = discords.findIndex(d => d.path === selected.path);
             if (idx !== -1) selectDiscord(idx);
@@ -995,13 +995,13 @@
       setStatus('loading', `Uninjecting from ${selected.name}...`);
       
       // Real C# uninjection call
-      const result = await window.nightcord.uninject(selected.path);
+      const result = await window.deadcord.uninject(selected.path);
       
       if (result.success) {
         setLoading(true, "Completed", 100);
         setTimeout(async () => {
           setLoading(false);
-          setStatus('success', `âœ“ Nightcord uninjected from ${selected.name}.`);
+          setStatus('success', `âœ“ Deadcord uninjected from ${selected.name}.`);
           await loadDiscords();
         }, 600);
       } else {
@@ -1014,7 +1014,7 @@
     loadDiscords();
   </script>
 
-  <!-- Sous-modale Nightcord Options -->
+  <!-- Sous-modale Deadcord Options -->
   <div class="nc-options-overlay" id="nc-options-overlay" onclick="closeNcOptions(event)">
     <div class="nc-options-container" onclick="event.stopPropagation()">
       <div class="nc-options-header">
@@ -1022,7 +1022,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path fill-rule="evenodd" d="M10.56 1.1c-.46.05-.7.53-.64.98.18 1.16-.19 2.2-.98 2.53-.8.33-1.79-.15-2.49-1.1-.27-.36-.78-.52-1.14-.24-.77.59-1.45 1.27-2.04 2.04-.28.36-.12.87.24 1.14.96.7 1.43 1.7 1.1 2.49-.33.8-1.37 1.16-2.53.98-.45-.07-.93.18-.99.64a11.1 11.1 0 0 0 0 2.88c.06.46.54.7.99.64 1.16-.18 2.2.19 2.53.98.33.8-.14 1.79-1.1 2.49-.36.27-.52.78-.24 1.14.59.77 1.27 1.45 2.04 2.04.36.28.87.12 1.14-.24.7-.95 1.7-1.43 2.49-1.1.8.33 1.16 1.37.98 2.53-.07.45.18.93.64.99a11.1 11.1 0 0 0 2.88 0c.46-.06.7-.54.64-.99-.18-1.16.19-2.2.98-2.53.8-.33 1.79.14 2.49 1.1.27.36.78.52 1.14.24.77-.59 1.45-1.27 2.04-2.04.28-.36.12-.87-.24-1.14-.96-.7-1.43-1.7-1.1-2.49.33-.8 1.37-1.16 2.53-.98.45.07.93-.18.99-.64a11.1 11.1 0 0 0 0-2.88c-.06-.46-.54-.7-.99-.64-1.16.18-2.2-.19-2.53-.98-.33-.8.14-1.79 1.1-2.49.36-.27.52-.78.24-1.14a11.07 11.07 0 0 0-2.04-2.04c-.36-.28-.87-.12-1.14.24-.7.96-1.7 1.43-2.49 1.1-.8-.33-1.16-1.37-.98-2.53.07-.45-.18-.93-.64-.99a11.1 11.1 0 0 0-2.88 0ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" clip-rule="evenodd"/>
           </svg>
-          Nightcord Options
+          Deadcord Options
         </h2>
         <button class="nc-options-close" onclick="document.getElementById('nc-options-overlay').classList.remove('visible')">&#x2715;</button>
       </div>
@@ -1031,7 +1031,7 @@
         <div class="nc-toggle-info">
           <div class="nc-toggle-label">Config par defaut</div>
           <div class="nc-toggle-desc">
-            Actif : tous les plugins marques &ldquo;actif par defaut&rdquo; dans Nightcord seront actifs apres installation.<br>
+            Actif : tous les plugins marques &ldquo;actif par defaut&rdquo; dans Deadcord seront actifs apres installation.<br>
             Inactif : aucun plugin ne sera actif &mdash; installation minimaliste.
           </div>
         </div>
@@ -1051,7 +1051,7 @@
 
     function loadNcPrefs() {
       try {
-        const raw = window.nightcord.getInstallerSettings();
+        const raw = window.deadcord.getInstallerSettings();
         if (raw && typeof raw === 'object') _ncPrefs = Object.assign(_ncPrefs, raw);
       } catch(e) { console.warn('loadNcPrefs error', e); }
       document.getElementById('toggle-default-plugins').checked = !!_ncPrefs.defaultPlugins;
@@ -1069,7 +1069,7 @@
 
     function saveNcOptions() {
       _ncPrefs.defaultPlugins = document.getElementById('toggle-default-plugins').checked;
-      try { window.nightcord.setInstallerSettings(_ncPrefs); } catch(e) {}
+      try { window.deadcord.setInstallerSettings(_ncPrefs); } catch(e) {}
       const el = document.getElementById('nc-options-saved');
       el.classList.add('show');
       setTimeout(() => el.classList.remove('show'), 2200);

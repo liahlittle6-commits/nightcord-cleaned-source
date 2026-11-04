@@ -21,8 +21,8 @@ function ask(question) {
 }
 
 async function releaseNightly() {
-    console.log("\nRelease Nightcord Nightly");
-    console.log('   Action: lance le workflow manuel "Release Nightcord"\n');
+    console.log("\nRelease Deadcord Nightly");
+    console.log('   Action: lance le workflow manuel "Release Deadcord"\n');
 
     const confirm = await ask("Continuer ? (y/N) ");
     if (confirm.toLowerCase() !== "y") { console.log("Annule."); return; }
@@ -33,7 +33,7 @@ async function releaseNightly() {
 }
 
 async function releaseStable() {
-    console.log("\nRelease Nightcord Stable");
+    console.log("\nRelease Deadcord Stable");
     console.log(`   Version actuelle: v${currentVersion}\n`);
 
     console.log("Options:");

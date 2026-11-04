@@ -37,8 +37,8 @@ const KNOWN_PLUGINS_KEY = "EquicordChangelog_KnownPlugins";
 const KNOWN_SETTINGS_KEY = "EquicordChangelog_KnownSettings";
 const LAST_REPO_CHECK_KEY = "EquicordChangelog_LastRepoCheck";
 const GITEA_API_BASE = `https://git.${domain}/api/v1/repos`;
-const NIGHTCORD_RELEASES_REPO = "nightcord/nightcord";
-const NIGHTCORD_REPO_URL = `https://git.${domain}/${NIGHTCORD_RELEASES_REPO}`;
+const DEADCORD_RELEASES_REPO = "nightcord/nightcord";
+const DEADCORD_REPO_URL = `https://git.${domain}/${DEADCORD_RELEASES_REPO}`;
 
 type KnownPluginSettingsMap = Map<string, Set<string>>;
 
@@ -392,13 +392,13 @@ export async function getNewSettings(): Promise<Map<string, string[]>> {
     return newSettings;
 }
 
-export { NIGHTCORD_REPO_URL };
+export { DEADCORD_REPO_URL };
 
 export async function getCommitsSinceLastSeen(
     repoUrl: string,
 ): Promise<ChangelogEntry[]> {
-    // Toujours utiliser le repo Nightcord, ignorer le repoUrl d'Equicord
-    return fetchCommitsBetween(NIGHTCORD_RELEASES_REPO, "HEAD~10", "HEAD").catch(() => []);
+    // Toujours utiliser le repo Deadcord, ignorer le repoUrl d'Equicord
+    return fetchCommitsBetween(DEADCORD_RELEASES_REPO, "HEAD~10", "HEAD").catch(() => []);
 }
 
 export async function updateKnownSettings(): Promise<void> {

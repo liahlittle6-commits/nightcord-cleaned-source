@@ -14,9 +14,9 @@ import {
     ThemesTab,
     VencordTab,
 } from "@components/settings";
-import { CreateThemeTab } from "@nightcordplugins/createTheme/components/CreateThemeTab";
-import { PencilSparkleIcon } from "@nightcordplugins/createTheme/components/PencilSparkleIcon";
-import IconsTab from "@nightcordplugins/iconViewer/components/IconsTab";
+import { CreateThemeTab } from "@deadcordplugins/createTheme/components/CreateThemeTab";
+import { PencilSparkleIcon } from "@deadcordplugins/createTheme/components/PencilSparkleIcon";
+import IconsTab from "@deadcordplugins/iconViewer/components/IconsTab";
 import { gitHashShort } from "@shared/vencordUserAgent";
 import { Devs } from "@utils/constants";
 import { isTruthy } from "@utils/guards";
@@ -99,7 +99,7 @@ interface SettingsLayoutBuilder {
 const settings = definePluginSettings({
     settingsLocation: {
         type: OptionType.SELECT,
-        description: "Where to put the Nightcord settings section",
+        description: "Where to put the Deadcord settings section",
         options: [
             { label: "At the very top", value: "top" },
             { label: "Above the Nitro section", value: "aboveNitro", default: true },
@@ -210,8 +210,8 @@ export default definePlugin({
 
         const mainEntry = buildEntry({
             key: "equicord_main",
-            title: "Nightcord",
-            panelTitle: "Nightcord Settings",
+            title: "Deadcord",
+            panelTitle: "Deadcord Settings",
             Component: VencordTab,
             Icon: MainSettingsIcon
         });
@@ -257,7 +257,7 @@ export default definePlugin({
                 Icon: PatchHelperIcon
             }),
             buildEntry({
-                key: "nightcord_icon_finder",
+                key: "deadcord_icon_finder",
                 title: "Icon Finder",
                 Component: IconsTab,
                 Icon: MagnifyingGlassIcon
@@ -270,7 +270,7 @@ export default definePlugin({
             type: LayoutTypes.SECTION,
             useTitle: () => {
                 try { if (localStorage.getItem("Nightcord_stealthMode") === "1") return ""; } catch { }
-                return "Nightcord Settings";
+                return "Deadcord Settings";
             },
             buildLayout: () => {
                 try { if (localStorage.getItem("Nightcord_stealthMode") === "1") return [mainEntry]; } catch { }
@@ -340,7 +340,7 @@ export default definePlugin({
     getInfoRows() {
         const { electronVersion, chromiumVersion, getVersionInfo } = this;
 
-        const rows = [`Nightcord ${gitHashShort}${getVersionInfo()}`];
+        const rows = [`Deadcord ${gitHashShort}${getVersionInfo()}`];
 
         if (electronVersion) rows.push(`Electron ${electronVersion}`);
         if (chromiumVersion) rows.push(`Chromium ${chromiumVersion}`);

@@ -21,7 +21,7 @@ export enum SearchStatus {
     ALL,
     ENABLED,
     DISABLED,
-    NIGHTCORD,
+    DEADCORD,
     OTHERS,
     VENCORD,
     NEW,

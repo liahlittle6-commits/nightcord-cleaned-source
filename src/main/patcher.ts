@@ -21,12 +21,12 @@ import electron, { app, BrowserWindowConstructorOptions, Menu, session } from "e
 import { existsSync as fsExistsSync, statSync as fsStatSync } from "original-fs";
 import { dirname, join } from "path";
 
-import { registerMediaPermissionsForSession } from "../nightcord/main/mediaPermissions";
+import { registerMediaPermissionsForSession } from "../deadcord/main/mediaPermissions";
 import { RendererSettings } from "./settings";
 import { patchTrayMenu } from "./trayMenu";
 import { IS_VANILLA } from "./utils/constants";
 
-console.log("[Nightcord] Starting up...");
+console.log("[Deadcord] Starting up...");
 
 // Our injector file at app/index.js
 const injectorPath = require.main!.filename;
@@ -225,10 +225,10 @@ if (!IS_VANILLA) {
                             applied = true;
                         }
                         if (!applied) {
-                            console.warn("[Nightcord] No background material API available on this system");
+                            console.warn("[Deadcord] No background material API available on this system");
                         }
                     } catch (e) {
-                        console.error("[Nightcord] setBackgroundMaterial failed:", e);
+                        console.error("[Deadcord] setBackgroundMaterial failed:", e);
                     }
                 }
 
@@ -297,7 +297,7 @@ if (!IS_VANILLA) {
                 return _originalHandle(channel, listener);
             } catch (e: any) {
                 if (e?.message?.includes?.("Attempted to register a second handler")) {
-                    console.warn(`[Nightcord] Ignored duplicate IPC handler for '${channel}'`);
+                    console.warn(`[Deadcord] Ignored duplicate IPC handler for '${channel}'`);
                     return;
                 }
                 throw e;
@@ -319,8 +319,8 @@ if (!IS_VANILLA) {
     app.commandLine.appendSwitch("disable-background-timer-throttling");
     app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
 } else {
-    console.log("[Nightcord] Running in vanilla mode. Not loading Nightcord");
+    console.log("[Deadcord] Running in vanilla mode. Not loading Deadcord");
 }
 
-console.log("[Nightcord] Loading original Discord app.asar");
+console.log("[Deadcord] Loading original Discord app.asar");
 require(require.main!.filename);

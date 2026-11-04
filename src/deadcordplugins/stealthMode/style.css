@@ -1,0 +1,16 @@
+/* Stealth Mode - hide Deadcord plugin UI (but NOT settings access) */
+
+/* Plugin buttons: header bar, channel toolbar, chat bar, user area */
+body.deadcord-stealth .vc-header-bar-btns,
+body.deadcord-stealth .vc-channel-toolbar-btns,
+body.deadcord-stealth .vc-chat-bar-btns,
+body.deadcord-stealth .vc-user-area-btns,
+
+/* Titlebar injected elements */
+body.deadcord-stealth #deadcord-titlebar-btn,
+body.deadcord-stealth #deadcord-titlebar-link-style,
+
+/* DeadcordAI nav button */
+body.deadcord-stealth .nai-nav-item {
+    display: none !important;
+}

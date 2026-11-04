@@ -53,7 +53,7 @@ function useTutorialExists(pluginName: string) {
                     TUTORIAL_CACHE.set(pluginName, found);
                     setExists(found);
                     // Force le rafraÃ®chissement global pour le filtre
-                    window.dispatchEvent(new CustomEvent("nightcord-tutorial-detected", { detail: { pluginName, found } }));
+                    window.dispatchEvent(new CustomEvent("deadcord-tutorial-detected", { detail: { pluginName, found } }));
                 }
             })
             .catch(() => {

@@ -124,7 +124,7 @@ ipcMain.handle(IpcEvents.WORLD_BOMB_TYPE, async (event, text: string, delay: num
         "}",
     ];
     const psScript = psLines.join("\r\n");
-    const tempDir = mkdtempSync(join(tmpdir(), "nightcord-wb-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "deadcord-wb-"));
     const tempFile = join(tempDir, "sendkeys.ps1");
     try {
         writeFileSync(tempFile, "\uFEFF" + psScript, "utf8");
@@ -151,7 +151,7 @@ function runPowershellScript(psScript: string): Promise<void> {
     const { writeFileSync, unlinkSync, mkdtempSync, rmSync } = require("fs");
     const { join } = require("path");
     const { tmpdir } = require("os");
-    const tempDir = mkdtempSync(join(tmpdir(), "nightcord-ps-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "deadcord-ps-"));
     const tempFile = join(tempDir, "script.ps1");
     return new Promise<void>((resolve, reject) => {
         try {
@@ -273,7 +273,7 @@ ipcMain.handle(IpcEvents.WORLD_BOMB_SEQUENCE, async (
     lines.push("} catch { exit 1 }");
 
     const psScript = lines.join("\r\n");
-    const tempDir = mkdtempSync(join(tmpdir(), "nightcord-wbs-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "deadcord-wbs-"));
     const tempFile = join(tempDir, "sequence.ps1");
     try {
         writeFileSync(tempFile, "\uFEFF" + psScript, "utf8");
@@ -736,7 +736,7 @@ ipcMain.handle(IpcEvents.OPEN_MONACO_EDITOR, async (event) => {
     }
 
     monacoWin = new BrowserWindow({
-        title: "Nightcord QuickCSS Editor",
+        title: "Deadcord QuickCSS Editor",
         autoHideMenuBar: true,
         darkTheme: true,
         webPreferences: {
@@ -890,8 +890,8 @@ ipcMain.handle(IpcEvents.RELAUNCH_APP, async (event) => {
     app.exit(0);
 });
 
-// Nightcord updater removed — stub
-ipcMain.handle(IpcEvents.NIGHTCORD_DOWNLOAD_AND_RUN, async (event) => {
+// Deadcord updater removed — stub
+ipcMain.handle(IpcEvents.DEADCORD_DOWNLOAD_AND_RUN, async (event) => {
     if (!validateSender(event)) throw new Error("Unauthorized IPC invocation");
     return false;
 });
@@ -916,7 +916,7 @@ ipcMain.handle(IpcEvents.INSTALL_VB_CABLE, async (event) => {
     const fs = require("fs");
 
     const zipUrl = "https://download.vb-audio.com/Download_Html/VBCABLE_Setup.zip";
-    const tmpDir = path.join(os.tmpdir(), "Nightcord-VBCable");
+    const tmpDir = path.join(os.tmpdir(), "Deadcord-VBCable");
     const tmpZip = path.join(os.tmpdir(), "VBCable_Setup.zip");
 
     try { if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { }
@@ -972,7 +972,7 @@ ipcMain.handle(IpcEvents.INSTALL_VB_CABLE, async (event) => {
 
         return { success: true };
     } catch (err: any) {
-        console.error("[Nightcord] VBCable install failed:", err);
+        console.error("[Deadcord] VBCable install failed:", err);
         return { success: false, error: "Installation failed: " + (err.message || err) };
     } finally {
         try { fs.unlinkSync(tmpZip); } catch {}

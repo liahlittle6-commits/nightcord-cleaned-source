@@ -24,7 +24,7 @@ function ApiKeyWarningModal({ pluginName, onClose }: { pluginName: string; onClo
                     <div style={{ fontSize: 14, color: "#fff", lineHeight: 1.5 }}>
                         <strong style={{ color: "#fff" }}>{pluginName}</strong> nécessite une clé API Groq pour fonctionner.
                         <br /><br />
-                        Configure-la une seule fois dans les paramètres de <strong style={{ color: "#fff" }}>NightcordAI</strong>.
+                        Configure-la une seule fois dans les paramètres de <strong style={{ color: "#fff" }}>DeadcordAI</strong>.
                     </div>
                 </div>
             </ModalContent>
@@ -43,11 +43,11 @@ function ApiKeyWarningModal({ pluginName, onClose }: { pluginName: string; onClo
                         }}
                         onClick={() => {
                             onClose();
-                            const plugin = Plugins.NightcordAI;
+                            const plugin = Plugins.DeadcordAI;
                             if (plugin) openPluginModal(plugin);
                         }}
                     >
-                        Configurer NightcordAI
+                        Configurer DeadcordAI
                     </button>
                     <button
                         style={{

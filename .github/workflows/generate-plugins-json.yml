@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/nightcordplugins/**"
+      - "src/deadcordplugins/**"
       - "src/plugins/**"
       - "src/utils/constants.ts"
       - "scripts/generatePluginList.ts"

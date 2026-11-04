@@ -1,6 +1,6 @@
 /*
- * Nightcord, a Discord client mod
- * Copyright (c) 2024 Nightcord contributors
+ * Deadcord, a Discord client mod
+ * Copyright (c) 2024 Deadcord contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

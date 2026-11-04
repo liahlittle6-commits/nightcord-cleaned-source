@@ -3,10 +3,10 @@ const { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSyn
 const { createHash } = require("crypto");
 const { join } = require("path");
 
-// ─── Configuration de Build Nightcord ─────────────────────────────────────────
+// ─── Configuration de Build Deadcord ─────────────────────────────────────────
 
-function killNightcord() {
-    const releaseDir = join(__dirname, "release", "nightcord-dist");
+function killDeadcord() {
+    const releaseDir = join(__dirname, "release", "deadcord-dist");
     const releaseExe = join(releaseDir, "Discord.exe");
 
     try {
@@ -40,19 +40,19 @@ function findDiscordApp() {
 }
 
 function buildEquicord() {
-    console.log("[build] Compilation de Nightcord...");
+    console.log("[build] Compilation de Deadcord...");
     execSync("node --require=./scripts/suppressExperimentalWarnings.js scripts/build/build.mjs --standalone", { stdio: "inherit" });
 }
 
-function buildNightcordFromDiscord(discordApp) {
+function buildDeadcordFromDiscord(discordApp) {
     const discordRes = join(discordApp, "resources");
-    const outDir = join(__dirname, "release", "nightcord-dist");
+    const outDir = join(__dirname, "release", "deadcord-dist");
 
     if (existsSync(outDir)) {
         try { rmSync(outDir, { recursive: true, force: true }); } catch (e) { }
     }
 
-    console.log("[nightcord] Copie des binaires Discord...");
+    console.log("[deadcord] Copie des binaires Discord...");
     mkdirSync(outDir, { recursive: true });
 
     for (const f of readdirSync(discordApp)) {
@@ -93,7 +93,7 @@ function buildNightcordFromDiscord(discordApp) {
         cpSync(bootstrapSrc, bootstrapDst, { recursive: true });
     }
 
-    console.log("[nightcord] Préparation de _app.asar...");
+    console.log("[deadcord] Préparation de _app.asar...");
     let appAsarSrc = join(discordRes, "_app.asar");
     if (!existsSync(appAsarSrc)) appAsarSrc = join(discordRes, "app.asar");
     
@@ -119,7 +119,7 @@ require(path.join(__dirname, "..", "app", "dist", "desktop", "patcher.js"));
 
     const outApp = join(outRes, "app");
     mkdirSync(outApp, { recursive: true });
-    writeFileSync(join(outApp, "package.json"), JSON.stringify({ name: "nightcord", main: "index.js", version: "1.18.0" }, null, 2));
+    writeFileSync(join(outApp, "package.json"), JSON.stringify({ name: "deadcord", main: "index.js", version: "1.18.0" }, null, 2));
     writeFileSync(join(outApp, "index.js"), `
 "use strict";
 const path = require("path");
@@ -139,9 +139,9 @@ require(path.join(__dirname, "dist", "desktop", "patcher.js"));
         if (existsSync(join(equicordDist, f))) cpSync(join(equicordDist, f), join(outDist, f));
     }
 
-    const nightcordPreload = join(__dirname, "nightcord-preload.js");
-    if (existsSync(nightcordPreload)) {
-        cpSync(nightcordPreload, join(outDist, "preload.js"));
+    const deadcordPreload = join(__dirname, "deadcord-preload.js");
+    if (existsSync(deadcordPreload)) {
+        cpSync(deadcordPreload, join(outDist, "preload.js"));
     }
 
     // FFmpeg et YT-DLP (cherche dans le dossier local ou PATH)
@@ -155,19 +155,19 @@ require(path.join(__dirname, "dist", "desktop", "patcher.js"));
     const injectScript = join(__dirname, "inject-discord.ps1");
     if (existsSync(injectScript)) cpSync(injectScript, join(outDir, "inject-discord.ps1"));
 
-    const iconSrc = join(__dirname, "nightcord.ico");
+    const iconSrc = join(__dirname, "deadcord.ico");
     if (existsSync(iconSrc)) {
         cpSync(iconSrc, join(outDir, "app.ico"));
         // Rcedit pour le branding
         try {
             const rcedit = join(__dirname, "node_modules", ".bin", "rcedit.cmd");
             if (existsSync(rcedit)) {
-                execSync(`"${rcedit}" "${discordExe}" --set-icon "${iconSrc}" --set-version-string "ProductName" "Nightcord" --set-version-string "FileDescription" "Nightcord"`, { stdio: "ignore" });
+                execSync(`"${rcedit}" "${discordExe}" --set-icon "${iconSrc}" --set-version-string "ProductName" "Deadcord" --set-version-string "FileDescription" "Deadcord"`, { stdio: "ignore" });
             }
         } catch (e) { }
     }
 
-    console.log(`[nightcord] Build terminé -> ${outDir}`);
+    console.log(`[deadcord] Build terminé -> ${outDir}`);
 }
 
 function obfuscateDesktop() {
@@ -183,23 +183,23 @@ function obfuscateDesktop() {
 
 // ─── Execution du build ───────────────────────────────────────────────────────
 
-killNightcord();
+killDeadcord();
 const discord = findDiscordApp();
 buildEquicord();
 // obfuscateDesktop(); // Optionnel pour l'open source
-buildNightcordFromDiscord(discord);
+buildDeadcordFromDiscord(discord);
 
 module.exports = {
-    appId: "com.nightcord.app",
-    productName: "Nightcord",
-    copyright: "Copyright 2026 Nightcord",
+    appId: "com.deadcord.app",
+    productName: "Deadcord",
+    copyright: "Copyright 2026 Deadcord",
     extraMetadata: { main: "index.js" },
     asar: false,
     files: ["index.js", "dist/desktop/**/*", "!**/*.map", "!**/*.ts"],
     directories: { output: "release", buildResources: "desktop/assets" },
     win: {
         target: [{ target: "dir", arch: ["x64"] }],
-        icon: "nightcord.ico",
+        icon: "deadcord.ico",
         requestedExecutionLevel: "asInvoker"
     }
 };

@@ -57,18 +57,18 @@
             "@webpack/wreq.d": [
                 "./webpack/wreq.d"
             ],
-            "@nightcordplugins/*": [
-                "./nightcordplugins/*"
+            "@deadcordplugins/*": [
+                "./deadcordplugins/*"
             ],
             "main/*": [
-                "./nightcord/main/*"
+                "./deadcord/main/*"
             ],
             "shared/*": [
-                "./nightcord/shared/*",
+                "./deadcord/shared/*",
                 "./shared/*"
             ],
             "renderer/*": [
-                "./nightcord/renderer/*"
+                "./deadcord/renderer/*"
             ]
         },
         "plugins": [

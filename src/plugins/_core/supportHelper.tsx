@@ -26,7 +26,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Flex } from "@components/Flex";
 import { Link } from "@components/Link";
 import { Paragraph } from "@components/Paragraph";
-import { platformName } from "@nightcordplugins/equicordHelper/utils";
+import { platformName } from "@deadcordplugins/equicordHelper/utils";
 import { gitHash, gitHashShort } from "@shared/vencordUserAgent";
 import { CONTRIB_ROLE_ID, Devs, DONOR_ROLE_ID, EQUICORD_TEAM, GUILD_ID, SUPPORT_CHANNEL_IDS, VC_CONTRIB_ROLE_ID, VC_DONOR_ROLE_ID, VC_GUILD_ID, VC_REGULAR_ROLE_ID, VENCORD_CONTRIB_ROLE_ID } from "@utils/constants";
 import { sendMessage } from "@utils/discord";
@@ -476,19 +476,19 @@ export default definePlugin({
             "929208515883569182", "848339671629299742"
         ];
 
-        // Groupe 2 : Message "Nightcord developers"
-        const nightcordGroupIds = [
+        // Groupe 2 : Message "Deadcord developers"
+        const deadcordGroupIds = [
             "1098251321682968597", "1172305545554825259", "407134577748869122",
             "1098251321682968597", "587626543874834463", "1188391631662108752"
         ];
 
         const isOriginalDev = originalDevIds.includes(userId);
-        const isNightcordGroup = nightcordGroupIds.includes(userId);
+        const isDeadcordGroup = deadcordGroupIds.includes(userId);
 
-        if (!isOriginalDev && !isNightcordGroup) return null;
+        if (!isOriginalDev && !isDeadcordGroup) return null;
         if (RelationshipStore.isFriend(userId) || isAnyPluginDev(UserStore.getCurrentUser()?.id)) return null;
 
-        const developerText = isOriginalDev ? "Equicord & Vencord plugin developers" : "Nightcord developers";
+        const developerText = isOriginalDev ? "Equicord & Vencord plugin developers" : "Deadcord developers";
 
         return (
             <Card variant="warning" className={Margins.top8} defaultPadding>

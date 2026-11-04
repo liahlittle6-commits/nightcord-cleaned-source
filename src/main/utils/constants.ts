@@ -22,7 +22,7 @@ import { join } from "path";
 
 const suffix = IS_DEV ? "dev" : "";
 
-export const DATA_DIR = process.env.NIGHTCORD_USER_DATA_DIR ?? (
+export const DATA_DIR = process.env.DEADCORD_USER_DATA_DIR ?? (
     process.env.DISCORD_USER_DATA_DIR
         ? join(process.env.DISCORD_USER_DATA_DIR, "..", "NightcordData", suffix)
         : join(app.getPath("userData"), "..", "Nightcord", suffix)
@@ -66,7 +66,7 @@ if (IS_DEV) {
                 app.relaunch();
                 app.exit(0);
             } catch (err) {
-                console.error("[Nightcord] Failed to copy prod data:", err);
+                console.error("[Deadcord] Failed to copy prod data:", err);
             }
         }, 5000);
     }

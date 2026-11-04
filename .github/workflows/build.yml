@@ -1,4 +1,4 @@
-name: Release Nightcord
+name: Release Deadcord
 on:
     workflow_dispatch:
         inputs:
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
     Build:
-        name: Build Nightcord
+        name: Build Deadcord
         runs-on: ubuntu-latest
 
         steps:
@@ -60,10 +60,10 @@ jobs:
                   cp dist/desktop/renderer.js package/dist/desktop/
                   cp dist/desktop/renderer.css package/dist/desktop/
                   cp dist/desktop/renderer.js.LEGAL.txt package/dist/desktop/
-                  cp dist/nightcord/preload.js package/dist/desktop/preload.js
+                  cp dist/deadcord/preload.js package/dist/desktop/preload.js
 
-                  cp nightcord-index.js package/
-                  cp nightcord-preload.js package/
+                  cp deadcord-index.js package/
+                  cp deadcord-preload.js package/
 
                   cp dist/browser/browser.js package/browser/
                   cp dist/browser/browser.css package/browser/
@@ -77,7 +77,7 @@ jobs:
                   cp dist/devs.json package/ 2>/dev/null || true
 
                   cd package
-                  zip -r ../nightcord-payload.zip .
+                  zip -r ../deadcord-payload.zip .
 
             - name: Embed payload in installer
               run: |
@@ -90,13 +90,13 @@ jobs:
                   assets = Path("release-assets")
                   assets.mkdir(exist_ok=True)
 
-                  payload = base64.b64encode(Path("nightcord-payload.zip").read_bytes()).decode()
+                  payload = base64.b64encode(Path("deadcord-payload.zip").read_bytes()).decode()
                   payload = "\n".join(textwrap.wrap(payload, 76))
-                  installer = Path("nightcord-install.ps1").read_text(encoding="utf-8")
-                  installer = installer.replace("__NIGHTCORD_PAYLOAD_BASE64__", payload)
-                  Path("release-assets/nightcord-install.ps1").write_text(installer, encoding="utf-8", newline="\r\n")
+                  installer = Path("deadcord-install.ps1").read_text(encoding="utf-8")
+                  installer = installer.replace("__DEADCORD_PAYLOAD_BASE64__", payload)
+                  Path("release-assets/deadcord-install.ps1").write_text(installer, encoding="utf-8", newline="\r\n")
 
-                  for name in ("nightcord-install.bat", "nightcord-uninstall.bat", "nightcord-uninstall.ps1"):
+                  for name in ("deadcord-install.bat", "deadcord-uninstall.bat", "deadcord-uninstall.ps1"):
                       shutil.copyfile(name, assets / name)
                   PY
 
@@ -107,21 +107,21 @@ jobs:
                   TAG="${{ inputs.tag }}"
                   PRERELEASE="${{ inputs.prerelease }}"
 
-                  args=("$TAG" --target "$GITHUB_SHA" --title "Nightcord $TAG" --generate-notes)
+                  args=("$TAG" --target "$GITHUB_SHA" --title "Deadcord $TAG" --generate-notes)
                   if [ "$PRERELEASE" = "true" ]; then
                     args+=(--prerelease)
                   fi
 
-                  zip -j nightcord-install.zip release-assets/nightcord-install.bat release-assets/nightcord-install.ps1
-                  zip -j nightcord-uninstall.zip release-assets/nightcord-uninstall.bat release-assets/nightcord-uninstall.ps1
-                  mkdir -p nightcord-extension/chrome nightcord-extension/firefox
-                  cp -r dist/browser/chromium-unpacked/* nightcord-extension/chrome/
-                  cp -r dist/browser/firefox-unpacked/* nightcord-extension/firefox/
-                  zip -r nightcord-extension.zip nightcord-extension
+                  zip -j deadcord-install.zip release-assets/deadcord-install.bat release-assets/deadcord-install.ps1
+                  zip -j deadcord-uninstall.zip release-assets/deadcord-uninstall.bat release-assets/deadcord-uninstall.ps1
+                  mkdir -p deadcord-extension/chrome deadcord-extension/firefox
+                  cp -r dist/browser/chromium-unpacked/* deadcord-extension/chrome/
+                  cp -r dist/browser/firefox-unpacked/* deadcord-extension/firefox/
+                  zip -r deadcord-extension.zip deadcord-extension
 
                   gh release create "${args[@]}" 2>/dev/null || true
                   gh release upload "$TAG" --clobber \
-                    nightcord-payload.zip \
-                    nightcord-install.zip \
-                    nightcord-uninstall.zip \
-                    nightcord-extension.zip
+                    deadcord-payload.zip \
+                    deadcord-install.zip \
+                    deadcord-uninstall.zip \
+                    deadcord-extension.zip

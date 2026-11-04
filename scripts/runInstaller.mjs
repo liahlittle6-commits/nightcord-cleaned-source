@@ -1,13 +1,13 @@
 /*
- * Nightcord — Installer via EquilotlCli
+ * Deadcord — Installer via EquilotlCli
  * Télécharge EquilotlCli.exe depuis les releases Equicord et le lance
- * avec les variables d'environnement pointant vers les fichiers Nightcord.
+ * avec les variables d'environnement pointant vers les fichiers Deadcord.
  *
  * L'exe affiche une interface graphique permettant de choisir le Discord cible.
  *
  * Usage:
- *   pnpm inject    → installe Nightcord dans le Discord choisi
- *   pnpm uninject  → désinstalle Nightcord du Discord choisi
+ *   pnpm inject    → installe Deadcord dans le Discord choisi
+ *   pnpm uninject  → désinstalle Deadcord du Discord choisi
  *   pnpm repair    → répare l'installation
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -53,14 +53,14 @@ async function ensureBinary() {
         : null;
 
     if (existsSync(outputFile)) {
-        console.log("[Nightcord] Installer already present, using local copy.");
+        console.log("[Deadcord] Installer already present, using local copy.");
         return outputFile;
     }
 
-    console.log("[Nightcord] Downloading installer (" + filename + ")...");
+    console.log("[Deadcord] Downloading installer (" + filename + ")...");
 
     const res = await fetch(BASE_URL + filename, {
-        headers: { "User-Agent": "Nightcord (https://github.com/nightcordfr/nightcord)" }
+        headers: { "User-Agent": "Deadcord (https://github.com/nightcordfr/nightcord)" }
     });
 
     if (!res.ok)
@@ -82,7 +82,7 @@ async function ensureBinary() {
         try { chmodSync(outputFile, 0o755); } catch { }
     }
 
-    console.log("[Nightcord] Installer downloaded successfully!");
+    console.log("[Deadcord] Installer downloaded successfully!");
     return outputFile;
 }
 
@@ -90,15 +90,15 @@ async function ensureBinary() {
 function checkBuild() {
     const patcherPath = join(BASE_DIR, "dist", "desktop", "patcher.js");
     if (!existsSync(patcherPath)) {
-        console.error("\x1b[31m[Nightcord] dist/desktop/patcher.js not found!\x1b[0m");
+        console.error("\x1b[31m[Deadcord] dist/desktop/patcher.js not found!\x1b[0m");
         console.error("\x1b[33m           Run 'pnpm build' first, then try again.\x1b[0m");
         process.exit(1);
     }
 }
 
 // ── Nettoyage des injections précédentes ─────────────────────────────────────
-function cleanOldNightcord(isUninstall) {
-    console.log("[Nightcord] Cleaning previous installations...");
+function cleanOldDeadcord(isUninstall) {
+    console.log("[Deadcord] Cleaning previous installations...");
     const platform = process.platform;
     const candidates = [];
 
@@ -145,7 +145,7 @@ function cleanOldNightcord(isUninstall) {
                     const pkgFile = join(appDirPath, "package.json");
                     if (existsSync(pkgFile)) {
                         const pkg = JSON.parse(readFileSync(pkgFile, "utf-8"));
-                        if (pkg.name === "nightcord") shouldDelete = true;
+                        if (pkg.name === "deadcord") shouldDelete = true;
                     } else if (existsSync(backupPath)) {
                         shouldDelete = true;
                     }
@@ -153,7 +153,7 @@ function cleanOldNightcord(isUninstall) {
 
                 if (shouldDelete) {
                     rmSync(appDirPath, { recursive: true, force: true });
-                    console.log(`[Nightcord] Removed legacy app/ folder in ${resourcesDir}`);
+                    console.log(`[Deadcord] Removed legacy app/ folder in ${resourcesDir}`);
                     cleanedAny = true;
                 }
             }
@@ -163,19 +163,19 @@ function cleanOldNightcord(isUninstall) {
                     rmSync(appAsarPath, { recursive: true, force: true });
                 }
                 renameSync(backupPath, appAsarPath);
-                console.log(`[Nightcord] Restored _app.asar → app.asar in ${resourcesDir}`);
+                console.log(`[Deadcord] Restored _app.asar → app.asar in ${resourcesDir}`);
                 cleanedAny = true;
             }
 
         } catch (e) {
-            console.error(`[Nightcord] Error cleaning ${resourcesDir}:`, e.message);
+            console.error(`[Deadcord] Error cleaning ${resourcesDir}:`, e.message);
         }
     }
 
     if (cleanedAny) {
-        console.log("[Nightcord] Cleanup done.");
+        console.log("[Deadcord] Cleanup done.");
     } else {
-        console.log("[Nightcord] Nothing to clean.");
+        console.log("[Deadcord] Nothing to clean.");
     }
 }
 
@@ -206,13 +206,13 @@ function launchInjectedDiscord() {
                 const updateExe = join(base, "Update.exe");
 
                 if (existsSync(updateExe)) {
-                    console.log(`[Nightcord] Launching ${channel}...`);
+                    console.log(`[Deadcord] Launching ${channel}...`);
                     exec(`"${updateExe}" --processStart ${exeName}`);
                 } else {
                     // Fallback : lancer l'exe directement
                     const directExe = join(base, ver, channel + ".exe");
                     if (existsSync(directExe)) {
-                        console.log(`[Nightcord] Launching ${channel} (direct)...`);
+                        console.log(`[Deadcord] Launching ${channel} (direct)...`);
                         exec(`"${directExe}"`);
                     }
                 }
@@ -227,12 +227,12 @@ const argStart = process.argv.indexOf("--");
 const args = argStart === -1 ? process.argv.slice(2) : process.argv.slice(argStart + 1);
 
 const isUninstall = args.includes("--uninstall");
-cleanOldNightcord(isUninstall);
+cleanOldDeadcord(isUninstall);
 if (!isUninstall) checkBuild();
 
 const installerBin = await ensureBinary();
 
-console.log("[Nightcord] Injecting...");
+console.log("[Deadcord] Injecting...");
 
 const mappedArgs = args.map(a => {
     if (a === "--install") return "-install";
@@ -253,11 +253,11 @@ try {
             EQUICORD_USER_DATA_DIR: BASE_DIR,
             EQUICORD_DIRECTORY: join(BASE_DIR, "dist", "desktop"),
             EQUICORD_DEV_INSTALL: "1",
-            NIGHTCORD_DIRECTORY: join(BASE_DIR, "dist", "desktop")
+            DEADCORD_DIRECTORY: join(BASE_DIR, "dist", "desktop")
         }
     });
 } catch {
-    console.error("[Nightcord] Injection failed.");
+    console.error("[Deadcord] Injection failed.");
     process.exit(1);
 }
 

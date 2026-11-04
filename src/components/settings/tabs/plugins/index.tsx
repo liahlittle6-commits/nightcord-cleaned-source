@@ -103,7 +103,7 @@ export const ExcludedReasons: Record<"web" | "discordDesktop" | "vesktop" | "equ
     vesktop: "Vesktop/Equibop apps",
     equibop: "Vesktop/Equibop apps",
     web: "Vesktop/Equibop apps & Discord web",
-    dev: "Developer version of Nightcord"
+    dev: "Developer version of Deadcord"
 };
 
 function ExcludedPluginsList({ search }: { search: string; }) {
@@ -220,7 +220,7 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
 
     const hasUserPlugins = useMemo(() => !IS_STANDALONE && Object.values(PluginMeta).some(m => m.userPlugin), []);
 
-    const [searchValue, setSearchValue] = useState({ value: "", status: SearchStatus.NIGHTCORD });
+    const [searchValue, setSearchValue] = useState({ value: "", status: SearchStatus.DEADCORD });
     const [searchInput, setSearchInput] = useState("");
 
     const debouncedSetSearch = useMemo(
@@ -240,8 +240,8 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
     // Rafraîchir quand un tuto est détecté
     React.useEffect(() => {
         const handler = () => setSearchValue(prev => ({ ...prev }));
-        window.addEventListener("nightcord-tutorial-detected", handler);
-        return () => window.removeEventListener("nightcord-tutorial-detected", handler);
+        window.addEventListener("deadcord-tutorial-detected", handler);
+        return () => window.removeEventListener("deadcord-tutorial-detected", handler);
     }, []);
 
     const pluginFilter = useCallback((plugin: typeof Plugins[keyof typeof Plugins], newPluginsSet: Set<string> | null) => {
@@ -263,11 +263,11 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
             case SearchStatus.ENABLED:
                 if (!enabled) return false;
                 break;
-            case SearchStatus.NIGHTCORD:
-                if (!PluginMeta[plugin.name].folderName.startsWith("src/nightcordplugins/")) return false;
+            case SearchStatus.DEADCORD:
+                if (!PluginMeta[plugin.name].folderName.startsWith("src/deadcordplugins/")) return false;
                 break;
             case SearchStatus.OTHERS:
-                if (PluginMeta[plugin.name].folderName.startsWith("src/nightcordplugins/") || PluginMeta[plugin.name].folderName.startsWith("src/plugins/_")) return false;
+                if (PluginMeta[plugin.name].folderName.startsWith("src/deadcordplugins/") || PluginMeta[plugin.name].folderName.startsWith("src/plugins/_")) return false;
                 if (!PluginMeta[plugin.name].folderName.startsWith("src/plugins/")) return false;
                 break;
             case SearchStatus.VENCORD:
@@ -315,8 +315,8 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
 
     const handleRestartNeeded = useCallback((name: string, key: string) => changes.handleChange(`${name}:${key}`), [changes]);
 
-    const { nightcordPlugins, othersPlugins, requiredPlugins } = useMemo(() => {
-        const nightcordPlugins = [] as JSX.Element[];
+    const { deadcordPlugins, othersPlugins, requiredPlugins } = useMemo(() => {
+        const deadcordPlugins = [] as JSX.Element[];
         const othersPlugins = [] as JSX.Element[];
         const requiredPlugins = [] as JSX.Element[];
 
@@ -331,7 +331,7 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
 
             if (isRequired) {
                 const tooltipText = p.required || !depMap[p.name]
-                    ? "This plugin is required for Nightcord to function."
+                    ? "This plugin is required for Deadcord to function."
                     : <PluginDependencyList deps={depMap[p.name]?.filter(d => settings.plugins[d]?.enabled)} />;
 
                 requiredPlugins.push(
@@ -349,7 +349,7 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
                 );
             } else {
                 const folderName = PluginMeta[p.name]?.folderName ?? "";
-                const isNightcord = folderName.startsWith("src/nightcordplugins/");
+                const isDeadcord = folderName.startsWith("src/deadcordplugins/");
                 const card = (
                     <PluginCard
                         onRestartNeeded={handleRestartNeeded}
@@ -359,14 +359,14 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
                         key={p.name}
                     />
                 );
-                if (isNightcord) {
-                    nightcordPlugins.push(card);
+                if (isDeadcord) {
+                    deadcordPlugins.push(card);
                 } else {
                     othersPlugins.push(card);
                 }
             }
         }
-        return { nightcordPlugins, othersPlugins, requiredPlugins };
+        return { deadcordPlugins, othersPlugins, requiredPlugins };
     }, [sortedPlugins, searchValue, newPluginsSet, depMap, settings.plugins, pluginFilter, handleRestartNeeded]);
 
     function resetCheckAndDo() {
@@ -422,7 +422,7 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
         const enabledUserPlugins = enabledPlugins.filter(p => PluginMeta[p].userPlugin).length;
         return { totalStockPlugins, totalUserPlugins, enabledStockPlugins, enabledUserPlugins, enabledPlugins };
     }, [settings.plugins]);
-    const allPlugins = [...nightcordPlugins, ...othersPlugins];
+    const allPlugins = [...deadcordPlugins, ...othersPlugins];
     const pluginsToLoad = Math.min(36, allPlugins.length);
     const [visibleCount, setVisibleCount] = React.useState(pluginsToLoad);
     const loadMore = React.useCallback(() => {
@@ -439,8 +439,8 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
     }, [isSentinelVisible, visibleCount, allPlugins.length, dLoadMore]);
 
     // Split visible count between the two sections proportionally
-    const nightcordVisible = nightcordPlugins.slice(0, Math.min(visibleCount, nightcordPlugins.length));
-    const othersVisible = othersPlugins.slice(0, Math.max(0, visibleCount - nightcordPlugins.length));
+    const deadcordVisible = deadcordPlugins.slice(0, Math.min(visibleCount, deadcordPlugins.length));
+    const othersVisible = othersPlugins.slice(0, Math.max(0, visibleCount - deadcordPlugins.length));
 
     return (
         <SettingsTab>
@@ -476,7 +476,7 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
                                 { label: "Show All", value: SearchStatus.ALL, default: true },
                                 { label: "Show Enabled", value: SearchStatus.ENABLED },
                                 { label: "Show Disabled", value: SearchStatus.DISABLED },
-                                { label: "Show Nightcord Plugins", value: SearchStatus.NIGHTCORD },
+                                { label: "Show Deadcord Plugins", value: SearchStatus.DEADCORD },
                                 { label: "Show Others Plugins", value: SearchStatus.OTHERS },
                                 { label: "Show New", value: SearchStatus.NEW },
                                 hasUserPlugins && { label: "Show UserPlugins", value: SearchStatus.USER_PLUGINS },
@@ -493,11 +493,11 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
             {premiumOnly ? (
                 <>
                     <HeadingTertiary className={Margins.top20}>Premium Plugins</HeadingTertiary>
-                    {nightcordPlugins.length || othersPlugins.length
+                    {deadcordPlugins.length || othersPlugins.length
                         ? (
                             <div className={cl("grid")}>
-                                {[...nightcordVisible, ...othersVisible].length
-                                    ? [...nightcordVisible, ...othersVisible]
+                                {[...deadcordVisible, ...othersVisible].length
+                                    ? [...deadcordVisible, ...othersVisible]
                                     : <Paragraph>No plugins meet the search criteria.</Paragraph>
                                 }
                             </div>
@@ -507,11 +507,11 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
                 </>
             ) : (
                 <>
-                    {nightcordPlugins.length > 0 && (
+                    {deadcordPlugins.length > 0 && (
                         <>
-                            <HeadingTertiary className={Margins.top20}>Nightcord Plugins</HeadingTertiary>
+                            <HeadingTertiary className={Margins.top20}>Deadcord Plugins</HeadingTertiary>
                             <div className={cl("grid")}>
-                                {nightcordVisible}
+                                {deadcordVisible}
                             </div>
                         </>
                     )}
@@ -526,7 +526,7 @@ export default function PluginSettings({ premiumOnly = false }: PluginSettingsPr
                         </>
                     )}
 
-                    {nightcordPlugins.length === 0 && othersPlugins.length === 0 && (
+                    {deadcordPlugins.length === 0 && othersPlugins.length === 0 && (
                         <ExcludedPluginsList search={search} />
                     )}
 

@@ -41,7 +41,7 @@ import {
     getNewSettingsSize,
     getUpdatedPlugins,
     initializeChangelog,
-    NIGHTCORD_REPO_URL,
+    DEADCORD_REPO_URL,
     saveUpdateSession,
     UpdateSession,
 } from "./changelogManager";
@@ -228,7 +228,7 @@ function UpdateLogCard({
 }
 
 function ChangelogContent() {
-    const repo = NIGHTCORD_REPO_URL;
+    const repo = DEADCORD_REPO_URL;
     const repoErr = null;
     const repoPending = false;
     const [changelog, setChangelog] = React.useState<ChangelogEntry[]>([]);
@@ -556,7 +556,7 @@ function ChangelogContent() {
 
             <Heading className={Margins.top20}>Repository</Heading>
             <Paragraph className={Margins.bottom8}>
-                This is the GitHub repository where Nightcord fetches updates from.
+                This is the GitHub repository where Deadcord fetches updates from.
             </Paragraph>
             <Paragraph color="text-subtle">
                 {repoPending ? (

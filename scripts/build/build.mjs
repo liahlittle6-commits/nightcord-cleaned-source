@@ -77,7 +77,7 @@ const globNativesPlugin = {
         });
 
         build.onLoad({ filter, namespace: "import-natives" }, async () => {
-            const pluginDirs = ["plugins", "userplugins", "nightcordplugins"];
+            const pluginDirs = ["plugins", "userplugins", "deadcordplugins"];
             let code = "";
             let natives = "\n";
             let i = 0;
@@ -177,7 +177,7 @@ const buildConfigs = ([
     {
         ...nodeCommonOpts,
         entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/main/index.ts")],
-        outfile: "dist/nightcord/main.js",
+        outfile: "dist/deadcord/main.js",
         footer: { js: "//# sourceURL=file:///VencordDesktopMain\n" + sourceMapFooter("main") },
         sourcemap,
         plugins: [
@@ -194,7 +194,7 @@ const buildConfigs = ([
     {
         ...commonOpts,
         entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/Vencord.ts")],
-        outfile: "dist/nightcord/renderer.js",
+        outfile: "dist/deadcord/renderer.js",
         format: "iife",
         target: ["esnext"],
         footer: { js: "//# sourceURL=file:///VencordDesktopRenderer\n" + sourceMapFooter("renderer") },
@@ -214,7 +214,7 @@ const buildConfigs = ([
     {
         ...nodeCommonOpts,
         entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/preload.ts")],
-        outfile: "dist/nightcord/preload.js",
+        outfile: "dist/deadcord/preload.js",
         footer: { js: "//# sourceURL=file:///VencordPreload\n" + sourceMapFooter("preload") },
         sourcemap,
         define: {
@@ -230,16 +230,16 @@ await buildOrWatchAll(buildConfigs);
 
 await Promise.all([
     writeFile("dist/desktop/package.json", JSON.stringify({
-        name: "nightcord",
+        name: "deadcord",
         main: "patcher.js"
     })),
-    writeFile("dist/nightcord/package.json", JSON.stringify({
-        name: "nightcord",
+    writeFile("dist/deadcord/package.json", JSON.stringify({
+        name: "deadcord",
         main: "main.js"
     }))
 ]);
 
 await Promise.all([
     createPackage("dist/desktop", "dist/desktop.asar"),
-    createPackage("dist/nightcord", "dist/nightcord.asar"),
+    createPackage("dist/deadcord", "dist/deadcord.asar"),
 ]);

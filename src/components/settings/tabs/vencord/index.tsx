@@ -30,7 +30,7 @@ import { openModal } from "@utils/modal";
 import { relaunch } from "@utils/native";
 import { Avatar, OAuth2AuthorizeModal, React, Select, UserStore } from "@webpack/common";
 
-import { ContributeModal } from "../../../../nightcord/renderer/components/ContributeModal";
+import { ContributeModal } from "../../../../deadcord/renderer/components/ContributeModal";
 import { openNotificationSettingsModal } from "./NotificationSettings";
 
 const cl = classNameFactory("vc-vencord-tab-");
@@ -121,7 +121,7 @@ function DevTeamSection() {
                 />
                 <QuickAction
                     Icon={PlanetIcon}
-                    text="NightCord Server"
+                    text="DeadCord Server"
                     action={() => window.open("https://discord.gg/nightcord", "_blank")}
                 />
             </QuickActionCard>
@@ -151,8 +151,8 @@ function useCompactActive() {
     const [active, setActive] = React.useState(isCompactModeEnabled);
     React.useEffect(() => {
         const handler = () => setActive(isCompactModeEnabled());
-        window.addEventListener("nightcord-compact-change", handler);
-        return () => window.removeEventListener("nightcord-compact-change", handler);
+        window.addEventListener("deadcord-compact-change", handler);
+        return () => window.removeEventListener("deadcord-compact-change", handler);
     }, []);
     return active;
 }
@@ -161,8 +161,8 @@ function useStealthActive() {
     const [active, setActive] = React.useState(isStealthModeEnabled);
     React.useEffect(() => {
         const handler = () => setActive(isStealthModeEnabled());
-        window.addEventListener("nightcord-stealth-change", handler);
-        return () => window.removeEventListener("nightcord-stealth-change", handler);
+        window.addEventListener("deadcord-stealth-change", handler);
+        return () => window.removeEventListener("deadcord-stealth-change", handler);
     }, []);
     return active;
 }
@@ -175,8 +175,8 @@ function StealthModeSection() {
             <Heading className={Margins.top20}>Stealth Mode</Heading>
             <Paragraph className={Margins.bottom16}>
                 {enabled
-                    ? "Stealth mode is enabled â€” all Nightcord visual elements are hidden. Shortcut: Ctrl+Shift+H"
-                    : "Hides all Nightcord visual elements (icons, buttons, context menus) without disabling plugins. Shortcut: Ctrl+Shift+H"}
+                    ? "Stealth mode is enabled â€” all Deadcord visual elements are hidden. Shortcut: Ctrl+Shift+H"
+                    : "Hides all Deadcord visual elements (icons, buttons, context menus) without disabling plugins. Shortcut: Ctrl+Shift+H"}
             </Paragraph>
             <Button
                 onClick={toggleStealthMode}
@@ -234,7 +234,7 @@ function CustomProfileSyncToggle() {
     async function handleToggle(on: boolean) {
         if (busy) return;
         if (on) {
-            // Récupère clientId, redirectUri et scopes depuis le serveur Nightcord
+            // Récupère clientId, redirectUri et scopes depuis le serveur Deadcord
             setBusy(true);
             let oauthData: { url: string; redirectUri: string; scopes: string[]; clientId?: string; } | null = null;
             try {
@@ -297,10 +297,10 @@ function CustomProfileSyncToggle() {
             <FormSwitch
                 value={isEnabled}
                 onChange={handleToggle}
-                title="Nightcord Sync"
+                title="Deadcord Sync"
                 description={isEnabled
-                    ? "Your custom profile is synced. Other Nightcord users can see your profile, and you can see theirs."
-                    : "Enable to share your custom profile with other Nightcord users and see their profiles."}
+                    ? "Your custom profile is synced. Other Deadcord users can see your profile, and you can see theirs."
+                    : "Enable to share your custom profile with other Deadcord users and see their profiles."}
                 disabled={busy}
             />
 
@@ -424,7 +424,7 @@ function EquicordSettings() {
 
                 <Heading className={Margins.top20}>Client Settings</Heading>
                 <Paragraph className={Margins.bottom16}>
-                    Configure how Nightcord behaves and integrates with Discord. These settings affect the Discord client's appearance and behavior.
+                    Configure how Deadcord behaves and integrates with Discord. These settings affect the Discord client's appearance and behavior.
                 </Paragraph>
                 <Notice.Info className={Margins.bottom20} style={{ width: "100%" }}>
                     You can customize where this settings section appears in Discord's settings menu by configuring the{" "}
@@ -540,7 +540,7 @@ function EquicordSettings() {
 
                 <Heading className={Margins.top20}>Notifications</Heading>
                 <Paragraph className={Margins.bottom16}>
-                    Configure how Nightcord handles notifications. You can customize when and how you receive alerts, or view a history of past notifications.
+                    Configure how Deadcord handles notifications. You can customize when and how you receive alerts, or view a history of past notifications.
                 </Paragraph>
 
                 <Flex gap="16px">
@@ -558,7 +558,7 @@ function EquicordSettings() {
 
             <Heading className={Margins.top20}>Compact Mode</Heading>
             <Paragraph className={Margins.bottom16}>
-                Replaces all Nightcord buttons with a single compact toggle icon. Click the icon in the header bar, channel toolbar, or chat bar to restore all buttons.
+                Replaces all Deadcord buttons with a single compact toggle icon. Click the icon in the header bar, channel toolbar, or chat bar to restore all buttons.
             </Paragraph>
             <Button
                 onClick={toggleCompactMode}
@@ -571,7 +571,7 @@ function EquicordSettings() {
 
             <Heading className={Margins.top20}>Stealth Mode</Heading>
             <Paragraph className={Margins.bottom16}>
-                Hides all Nightcord visual elements without disabling plugins. Shortcut: Ctrl+Shift+H
+                Hides all Deadcord visual elements without disabling plugins. Shortcut: Ctrl+Shift+H
             </Paragraph>
             <StealthModeButton />
 
@@ -579,7 +579,7 @@ function EquicordSettings() {
     );
 }
 
-export default wrapTab(EquicordSettings, "Nightcord Settings");
+export default wrapTab(EquicordSettings, "Deadcord Settings");
 
 
 

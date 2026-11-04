@@ -1,10 +1,10 @@
 @echo off
-title Nightcord Installer - Build
+title Deadcord Installer - Build
 cd /d "%~dp0"
 
 echo.
 echo  ================================
-echo   Nightcord Installer - Build
+echo   Deadcord Installer - Build
 echo  ================================
 echo.
 
@@ -49,7 +49,7 @@ if errorlevel 1 (
 )
 echo  [2/3] Compilation webpack reussie.
 
-:: Build electron-builder -> Nightcord-Installer.exe dans ../release/installer/
+:: Build electron-builder -> Deadcord-Installer.exe dans ../release/installer/
 echo.
 echo  [3/3] Packaging electron-builder...
 call npx electron-builder --win -p never
@@ -63,17 +63,17 @@ if errorlevel 1 (
 cd ..
 
 :: Verification
-if not exist "release\installer\Nightcord-Installer.exe" (
+if not exist "release\installer\Deadcord-Installer.exe" (
     echo.
-    echo  [ERREUR] Nightcord-Installer.exe introuvable apres build.
+    echo  [ERREUR] Deadcord-Installer.exe introuvable apres build.
     pause
     exit /b 1
 )
 
-for %%F in ("release\installer\Nightcord-Installer.exe") do (
+for %%F in ("release\installer\Deadcord-Installer.exe") do (
     echo.
     echo  [OK] Build reussi ^!
-    echo  Fichier : release\installer\Nightcord-Installer.exe  (%%~zF octets^)
+    echo  Fichier : release\installer\Deadcord-Installer.exe  (%%~zF octets^)
     echo.
 )
 

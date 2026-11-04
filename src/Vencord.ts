@@ -18,7 +18,7 @@
 
 // DO NOT REMOVE UNLESS YOU WISH TO FACE THE WRATH OF THE CIRCULAR DEPENDENCY DEMON!!!!!!!
 import "~plugins";
-console.log("%c[Nightcord]", "color: #5865f2; font-weight: bold;", "Injection successful! Starting services...");
+console.log("%c[Deadcord]", "color: #5865f2; font-weight: bold;", "Injection successful! Starting services...");
 
 export * as Api from "./api";
 export * as Plugins from "./api/PluginManager";
@@ -46,7 +46,7 @@ import { relaunch } from "./utils/native";
 import { onceReady } from "./webpack";
 import { patches } from "./webpack/patchWebpack";
 
-console.log("[Nightcord-Debug] 2: Post-import code starting");
+console.log("[Deadcord-Debug] 2: Post-import code starting");
 
 if (IS_REPORTER) {
     require("./debug/runReporter");
@@ -137,7 +137,7 @@ async function init() {
                 "Webpack has finished initialising, but some patches haven't been applied yet.",
                 "This might be expected since some Modules are lazy loaded, but please verify",
                 "that all plugins are working as intended.",
-                "You are seeing this warning because this is a Development build of Nightcord.",
+                "You are seeing this warning because this is a Development build of Deadcord.",
                 "\nThe following patches have not been applied:",
                 "\n\n" + pendingPatches.map(p => `${p.plugin}: ${p.find}`).join("\n")
             );

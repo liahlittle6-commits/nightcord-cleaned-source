@@ -1,5 +1,5 @@
 /*
- * Nightcord — Local un-injector for Discord Desktop
+ * Deadcord — Local un-injector for Discord Desktop
  * Annule l'injection en :
  * 1. Supprimant le dossier app/ créé par inject.mjs
  * 2. Restaurant _app.asar → app.asar
@@ -50,7 +50,7 @@ function findAllDiscordResources() {
         );
     }
 
-    // Filtrer uniquement les paths avec une injection Nightcord présente
+    // Filtrer uniquement les paths avec une injection Deadcord présente
     return candidates.filter(p => {
         if (!existsSync(p)) return false;
         return existsSync(join(p, "app")) || existsSync(join(p, "_app.asar"));
@@ -63,34 +63,34 @@ function uninject(resourcesDir) {
     const backupPath = join(resourcesDir, "_app.asar");
     const appAsarPath = join(resourcesDir, "app.asar");
 
-    // Vérifier que le dossier app/ a bien été créé par Nightcord
+    // Vérifier que le dossier app/ a bien été créé par Deadcord
     if (existsSync(appDirPath)) {
         try {
             const pkg = JSON.parse(readFileSync(join(appDirPath, "package.json"), "utf-8"));
-            if (pkg.name !== "nightcord") {
-                console.warn(`\x1b[33m[Nightcord] Le dossier app/ existe mais n'a pas été créé par Nightcord (name: "${pkg.name}").\x1b[0m`);
+            if (pkg.name !== "deadcord") {
+                console.warn(`\x1b[33m[Deadcord] Le dossier app/ existe mais n'a pas été créé par Deadcord (name: "${pkg.name}").\x1b[0m`);
                 console.warn("\x1b[33m            Abandon pour éviter de casser un autre mod.\x1b[0m");
                 return false;
             }
         } catch { }
 
-        console.log("[Nightcord] Suppression du dossier app/ injecté...");
+        console.log("[Deadcord] Suppression du dossier app/ injecté...");
         rmSync(appDirPath, { recursive: true, force: true });
     } else {
-        console.log("\x1b[33m[Nightcord] Aucun dossier app/ injecté trouvé.\x1b[0m");
+        console.log("\x1b[33m[Deadcord] Aucun dossier app/ injecté trouvé.\x1b[0m");
     }
 
     // Restaurer le backup
     if (existsSync(backupPath) && !existsSync(appAsarPath)) {
-        console.log("[Nightcord] Restauration _app.asar → app.asar...");
+        console.log("[Deadcord] Restauration _app.asar → app.asar...");
         renameSync(backupPath, appAsarPath);
     } else if (existsSync(backupPath) && existsSync(appAsarPath)) {
-        console.log("[Nightcord] app.asar déjà présent, nettoyage du backup...");
+        console.log("[Deadcord] app.asar déjà présent, nettoyage du backup...");
         rmSync(backupPath, { force: true });
     }
 
-    console.log(`\x1b[32m[Nightcord] Désinjection réussie depuis : ${resourcesDir}\x1b[0m`);
-    console.log("\x1b[36m[Nightcord] Redémarrez Discord pour appliquer les changements.\x1b[0m");
+    console.log(`\x1b[32m[Deadcord] Désinjection réussie depuis : ${resourcesDir}\x1b[0m`);
+    console.log("\x1b[36m[Deadcord] Redémarrez Discord pour appliquer les changements.\x1b[0m");
     return true;
 }
 
@@ -98,20 +98,20 @@ function uninject(resourcesDir) {
 const allResources = findAllDiscordResources();
 
 if (allResources.length === 0) {
-    console.error("\x1b[31m[Nightcord] Aucune installation Discord avec Nightcord injecté trouvée.\x1b[0m");
-    console.error("\x1b[33m           Assurez-vous que Nightcord a bien été injecté via 'pnpm inject'.\x1b[0m");
+    console.error("\x1b[31m[Deadcord] Aucune installation Discord avec Deadcord injecté trouvée.\x1b[0m");
+    console.error("\x1b[33m           Assurez-vous que Deadcord a bien été injecté via 'pnpm inject'.\x1b[0m");
     process.exit(1);
 }
 
 let uninjectCount = 0;
 for (const res of allResources) {
-    console.log(`\n[Nightcord] Trouvé : ${res}`);
+    console.log(`\n[Deadcord] Trouvé : ${res}`);
     if (uninject(res)) uninjectCount++;
 }
 
 if (uninjectCount === 0) {
-    console.error("\x1b[31m[Nightcord] Aucune désinjection réussie.\x1b[0m");
+    console.error("\x1b[31m[Deadcord] Aucune désinjection réussie.\x1b[0m");
     process.exit(1);
 }
 
-console.log(`\n\x1b[32m[Nightcord] ${uninjectCount}/${allResources.length} désinjection(s) réussie(s).\x1b[0m`);
+console.log(`\n\x1b[32m[Deadcord] ${uninjectCount}/${allResources.length} désinjection(s) réussie(s).\x1b[0m`);

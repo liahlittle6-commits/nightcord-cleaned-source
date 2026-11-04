@@ -39,7 +39,7 @@ export const enum IpcEvents {
     BUILD = "VencordBuild",
     OPEN_MONACO_EDITOR = "VencordOpenMonacoEditor",
     GET_MONACO_THEME = "VencordGetMonacoTheme",
-    GET_INSTALLER_PREFS = "NightcordGetInstallerPrefs",
+    GET_INSTALLER_PREFS = "DeadcordGetInstallerPrefs",
 
     GET_PLUGIN_IPC_METHOD_MAP = "VencordGetPluginIpcMethodMap",
 
@@ -60,21 +60,21 @@ export const enum IpcEvents {
 
     GET_DESKTOP_SOURCES = "VencordGetDesktopSources",
 
-    SET_WINDOW_BACKGROUND_MATERIAL = "NightcordSetWindowBackgroundMaterial",
+    SET_WINDOW_BACKGROUND_MATERIAL = "DeadcordSetWindowBackgroundMaterial",
 
     // SoundCord Player â€” thumbnail toolbar Windows
     SET_THUMBAR_BUTTONS = "SoundCordSetThumbarButtons",
     THUMBAR_BUTTON_CLICK = "SoundCordThumbarButtonClick",
 
-    // Nightcord Updater â€” tÃ©lÃ©charge un exe depuis une URL et le lance
-    NIGHTCORD_DOWNLOAD_AND_RUN = "NightcordDownloadAndRun",
+    // Deadcord Updater â€” tÃ©lÃ©charge un exe depuis une URL et le lance
+    DEADCORD_DOWNLOAD_AND_RUN = "DeadcordDownloadAndRun",
 
     // VB-Audio Virtual Cable (Windows only)
-    CHECK_VB_CABLE = "NightcordCheckVBCable",
-    INSTALL_VB_CABLE = "NightcordInstallVBCable",
+    CHECK_VB_CABLE = "DeadcordCheckVBCable",
+    INSTALL_VB_CABLE = "DeadcordInstallVBCable",
 
     // Relaunch de l'app Electron
-    RELAUNCH_APP = "NightcordRelaunchApp",
+    RELAUNCH_APP = "DeadcordRelaunchApp",
 
     // WorldBomb â€” Simulation Clavier/Souris Native
     WORLD_BOMB_TYPE = "WorldBombType",

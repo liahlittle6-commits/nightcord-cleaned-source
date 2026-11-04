@@ -50,7 +50,7 @@ if (!IS_COMPANION_TEST && process.argv.includes("--companion-test"))
 export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
 let gitHash;
 try {
-    gitHash = process.env.NIGHTCORD_HASH || execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+    gitHash = process.env.DEADCORD_HASH || execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
 } catch {
     gitHash = "no-git";
 }
@@ -58,7 +58,7 @@ export { gitHash };
 
 export const banner = {
     js: `
-// Nightcord ${gitHash}
+// Deadcord ${gitHash}
 // Standalone: ${IS_STANDALONE}
 // Platform: ${IS_STANDALONE === false ? process.platform : "Universal"}
 // Updater Disabled: ${IS_UPDATER_DISABLED}
@@ -152,7 +152,7 @@ export const globPlugins = kind => ({
         });
 
         build.onLoad({ filter, namespace: "import-plugins" }, async () => {
-            const pluginDirs = ["plugins/_api", "plugins/_core", "plugins", "userplugins", "nightcordplugins", "nightcordplugins/_api"];
+            const pluginDirs = ["plugins/_api", "plugins/_core", "plugins", "userplugins", "deadcordplugins", "deadcordplugins/_api"];
             let code = "";
             let pluginsCode = "\n";
             let metaCode = "\n";
@@ -245,7 +245,7 @@ export const gitRemotePlugin = {
             namespace: "git-remote", path: args.path
         }));
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
-            let remote = process.env.NIGHTCORD_REMOTE;
+            let remote = process.env.DEADCORD_REMOTE;
             if (!remote) {
                 try {
                     const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" });
@@ -390,7 +390,7 @@ export const commonOpts = {
         "@webpack/common": "./src/webpack/common",
         "@webpack/patcher": "./src/webpack/patchWebpack",
         "@webpack": "./src/webpack/webpack",
-        "@nightcordplugins": "./src/nightcordplugins",
+        "@deadcordplugins": "./src/deadcordplugins",
         "@vencord/discord-types/enums": "./packages/discord-types/enums/index.ts",
     }
 };

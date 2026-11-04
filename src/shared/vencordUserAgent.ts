@@ -10,5 +10,5 @@ import gitRemote from "~git-remote";
 export { gitHash, gitRemote };
 
 export const gitHashShort = gitHash.slice(0, 7);
-export const VENCORD_USER_AGENT = `Nightcord/${gitHash}${gitRemote ? ` (https://github.com/${gitRemote})` : ""}`;
-export const VENCORD_USER_AGENT_HASHLESS = `Nightcord${gitRemote ? ` (https://github.com/${gitRemote})` : ""}`;
+export const VENCORD_USER_AGENT = `Deadcord/${gitHash}${gitRemote ? ` (https://github.com/${gitRemote})` : ""}`;
+export const VENCORD_USER_AGENT_HASHLESS = `Deadcord${gitRemote ? ` (https://github.com/${gitRemote})` : ""}`;

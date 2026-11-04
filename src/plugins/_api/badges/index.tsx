@@ -83,7 +83,7 @@ const UserPluginContributorBadge: ProfileBadge = {
 
 let DonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
 let EquicordDonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
-let NightcordBadges = {} as Record<string, Array<{ icon: string; placeholder: string; uuid: string; }>>;
+let DeadcordBadges = {} as Record<string, Array<{ icon: string; placeholder: string; uuid: string; }>>;
 
 async function loadBadges(url: string, noCache = false) {
     const init = {} as RequestInit;
@@ -95,11 +95,11 @@ async function loadBadges(url: string, noCache = false) {
 async function loadAllBadges(noCache = false) {
     const vencordBadges = await loadBadges("https://badges.vencord.dev/badges.json", noCache).catch(() => ({}));
     const equicordBadges = await loadBadges("https://badge.equicord.org/badges.json", noCache).catch(() => ({}));
-    const nightcordBadges = await loadBadges(`https://api.${domain}/badges`, noCache).catch(() => ({}));
+    const deadcordBadges = await loadBadges(`https://api.${domain}/badges`, noCache).catch(() => ({}));
 
     DonorBadges = vencordBadges;
     EquicordDonorBadges = equicordBadges;
-    NightcordBadges = nightcordBadges;
+    DeadcordBadges = deadcordBadges;
 }
 
 let intervalId: any;
@@ -175,8 +175,8 @@ export default definePlugin({
         return EquicordDonorBadges;
     },
 
-    get NightcordBadges() {
-        return NightcordBadges;
+    get DeadcordBadges() {
+        return DeadcordBadges;
     },
 
     toolboxActions: {
@@ -274,16 +274,16 @@ export default definePlugin({
         } satisfies ProfileBadge));
     },
 
-    getNightcordBadges(userId: string) {
+    getDeadcordBadges(userId: string) {
         try {
-            const userBadges = NightcordBadges[userId];
+            const userBadges = DeadcordBadges[userId];
             if (!userBadges || !Array.isArray(userBadges)) return [];
 
             return userBadges
                 .filter(badge => badge && badge.icon)
                 .map(badge => ({
                     iconSrc: badge.icon,
-                    description: badge.placeholder ?? "Nightcord Badge",
+                    description: badge.placeholder ?? "Deadcord Badge",
                     position: BadgePosition.START,
                     props: {
                         style: {
@@ -297,7 +297,7 @@ export default definePlugin({
                     }
                 } satisfies ProfileBadge));
         } catch (e) {
-            console.error("[BadgeAPI] Error processing nightcord badges for", userId, e);
+            console.error("[BadgeAPI] Error processing deadcord badges for", userId, e);
             return [];
         }
     }
