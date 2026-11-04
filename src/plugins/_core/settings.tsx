@@ -142,18 +142,9 @@ export default definePlugin({
                     replace: "$&.replace(/^./, c => c.toUpperCase())"
                 },
                 {
-                    match: /"text-xxs\/normal".{0,300}?(?=null!=(\i)&&(.{0,20}\i\.\i.{0,200}?,children:).{0,15}?("span"),({className:\i\.\i,children:\["Build Override: ",\1\.id\]\})\)\}\))/,
-                    replace: (m, _buildOverride, makeRow, component, props) => {
-                        props = props.replace(/children:\[.+\]/, "");
-                        return `${m},$self.makeInfoElements(${component},${props}).map(e=>${makeRow}e})),`;
-                    }
-                },
-                {
-                    match: /"text-xs\/normal".{0,300}?\[\(0,\i\.jsxs?\)\((.{1,10}),(\{[^{}}]+\{.{0,20}className:\i.\i,.+?\})\)," "/,
-                    replace: (m, component, props) => {
-                        props = props.replace(/children:\[.+\]/, "");
-                        return `${m},$self.makeInfoElements(${component},${props})`;
-                    }
+                    match: /"footnote\/normal".{0,300}?(?=null!=(\i)&&(.{0,20}\i\.\i.{0,200}?,children:).{0,15}?("span"),{className:(\i\.\i),children:\["Build Override: ",\1\.id,\i\]\}\)\}\))/,
+                    replace: (m, _buildOverride, makeRow, component, className) =>
+                        `${m},$self.makeInfoElements(${component},{className:${className}}).map(e=>${makeRow}e})),`
                 },
                 {
                     match: /copyValue:\i\.join\(" "\)/g,

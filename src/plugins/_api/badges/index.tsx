@@ -143,8 +143,12 @@ export default definePlugin({
                     replace: "...$1.props,$&"
                 },
                 {
-                    match: /(?<=forceOpen:.{0,40}?\i\((\i)\.id\).{0,100}?)children:/,
-                    replace: "children:$1.component?$self.renderBadgeComponent({...$1}) :"
+                    match: /(?<=forceOpen:.{0,40}?ariaHidden:!0,)children:(?=.{0,50}?(\i)\.id)/,
+                    replace: "children:$1.component?$self.renderBadgeComponent({...$1}):"
+                },
+                {
+                    match: /(?<=fallbackIconSrc:.{0,50}?)children:(?=.{0,50}?(\i)\.id)/,
+                    replace: "children:$1.component?$self.renderBadgeComponent({...$1}):"
                 },
                 // handle onClick and onContextMenu
                 {
