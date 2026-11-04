@@ -17,7 +17,7 @@
 */
 
 import type * as t from "@vencord/discord-types";
-import { _resolveReady, filters, findByCodeLazy, findByPropsLazy, findLazy, mapMangledModuleLazy, waitFor } from "@webpack";
+import { _resolveReady, filters, findByCodeLazy, findByPropsLazy, findLazy, findStoreLazy, mapMangledModuleLazy, waitFor } from "@webpack";
 import type * as TSPattern from "ts-pattern";
 
 export let FluxDispatcher: t.FluxDispatcher;
@@ -134,8 +134,30 @@ export const Toasts = {
 /**
  * Show a simple toast. If you need more options, use Toasts.show manually
  */
-export function showToast(message: string, type = ToastType.MESSAGE, options?: ToastOptions) {
-    Toasts.show(Toasts.create(message, type, options));
+export interface ToastProps {
+    text: string;
+    variant?: "success" | "positive" | "critical" | "info" | string;
+    duration?: number;
+    position?: "top" | "bottom" | string;
+}
+
+const TOAST_VARIANT_TYPES: Record<string, string> = {
+    success: ToastType.SUCCESS,
+    positive: ToastType.SUCCESS,
+    critical: ToastType.FAILURE
+};
+
+export function showToast(message: string | ToastProps, type = ToastType.MESSAGE, options?: ToastOptions) {
+    if (typeof message === "string") {
+        Toasts.show(Toasts.create(message, type, options));
+        return;
+    }
+
+    const { text, variant, duration, position } = message;
+    Toasts.show(Toasts.create(text, TOAST_VARIANT_TYPES[variant ?? ""] ?? ToastType.MESSAGE, {
+        duration,
+        position: position === "top" ? ToastPosition.TOP : ToastPosition.BOTTOM
+    }));
 }
 
 export const UserUtils = {
@@ -161,12 +183,13 @@ export const NavigationRouter: t.NavigationRouter = mapMangledModuleLazy("transi
     forward: filters.byCode("goForward()"),
 });
 export const ChannelRouter: t.ChannelRouter = mapMangledModuleLazy('"Thread must have a parent ID."', {
-    transitionToChannel: filters.byCode(".preload"),
+    transitionToChannel: filters.byCode(".openTextInVoiceIfVoiceChannel"),
     transitionToThread: filters.byCode('"Thread must have a parent ID."')
 });
 
-export let SettingsRouter: any;
-waitFor(["openUserSettings", "USER_SETTINGS_MODAL_KEY"], m => SettingsRouter = m);
+export const SettingsRouter = mapMangledModuleLazy('type:"USER_SETTINGS_MODAL_OPEN"', {
+    openUserSettings: filters.byCode('type:"USER_SETTINGS_MODAL_OPEN"')
+});
 
 export const PermissionsBits: t.PermissionsBits = findLazy(m => typeof m.ADMINISTRATOR === "bigint");
 
@@ -180,7 +203,9 @@ export const { zustandPersist } = mapMangledModuleLazy(".onRehydrateStorage)?", 
 
 export const MessageActions = findByPropsLazy("editMessage", "sendMessage");
 export const MessageCache = findByPropsLazy("clearCache", "_channelMessages");
-export const UserProfileActions = findByPropsLazy("openUserProfileModal", "closeUserProfileModal");
+export const UserProfileActions = {
+    openUserProfileModal: findByCodeLazy('type:"USER_PROFILE_MODAL_OPEN"')
+};
 export const InviteActions = findByPropsLazy("resolveInvite");
 export const ChannelActionCreators = findByPropsLazy("openPrivateChannel");
 
@@ -218,7 +243,7 @@ export const DateUtils: t.DateUtils = mapMangledModuleLazy("millisecondsInUnit:"
 export const MessageTypeSets: t.MessageTypeSets = findByPropsLazy("REPLYABLE", "FORWARDABLE");
 
 export const CloudUploader = findLazy(m => m.prototype?.trackUploadFinished);
-export const ChannelActions = findByPropsLazy("selectChannel", "preload");
+export const ChannelActions = findByPropsLazy("selectChannel", "selectVoiceChannel");
 
 // ─── Re-exports for compatibility with Equicord/Vencord plugins ────────────────
 
@@ -226,20 +251,31 @@ export const ChannelActions = findByPropsLazy("selectChannel", "preload");
 export { closeAllModals, closeModal, ModalRoot as Modal, ModalCloseButton,ModalContent, ModalFooter, ModalHeader, ModalRoot, openModal, openModalLazy } from "@utils/modal";
 
 // Actions
-export const VoiceActions = findByPropsLazy("toggleSelfMute", "setChannel");
-export const GuildActions = findByPropsLazy("requestMembersById", "leaveGuild");
+export const VoiceActions = findByPropsLazy("toggleSelfMute");
+
+const GuildMemberActions = findByPropsLazy("setServerMute", "setServerDeaf");
+const GuildRequestActions = findByPropsLazy("requestMembersById", "banUser");
+const GuildLeaveActions = findByPropsLazy("leaveGuild");
+export const GuildActions = {
+    setServerMute: (...args: any[]) => GuildMemberActions.setServerMute(...args),
+    setServerDeaf: (...args: any[]) => GuildMemberActions.setServerDeaf(...args),
+    requestMembersById: (...args: any[]) => GuildRequestActions.requestMembersById(...args),
+    leaveGuild: (...args: any[]) => GuildLeaveActions.leaveGuild(...args)
+};
 export const PinActions = findByPropsLazy("pinMessage", "unpinMessage");
 
 // Utils
-export const ReadStateUtils = findByPropsLazy("ackMessage", "hasUnread");
+export const ReadStateUtils = mapMangledModuleLazy('type:"ENABLE_AUTOMATIC_ACK",', {
+    ackChannel: filters.byCode(".isForumLikeChannel(")
+});
 export const ColorUtils = findByPropsLazy("hex2int", "int2hex");
-export const ApplicationStreamingStore = findByPropsLazy("getAnyStreamForUser", "getStreamForUser");
-export const ApplicationStreamPreviewStore = findByPropsLazy("getPreviewURL");
-export const fetchApplicationsRPC = findByCodeLazy("APPLICATION_RPC(");
+export const ApplicationStreamingStore = findStoreLazy("ApplicationStreamingStore");
+export const ApplicationStreamPreviewStore = findStoreLazy("ApplicationStreamPreviewStore");
+export const fetchApplicationsRPC = findByCodeLazy('"Invalid Origin"', ".application");
 
 // React DnD hooks
-export const useDrag = findByCodeLazy("useDrag", "DragSourceMonitor");
-export const useDrop = findByCodeLazy("useDrop", "DropTargetMonitor");
+export const useDrag = findByCodeLazy("useDrag::spec.begin was deprecated");
+export const useDrop = findByCodeLazy(".disconnectDropTarget()", ".dropTargetOptions=");
 
 // ConfirmModal component
 export const ConfirmModal = findByCodeLazy('"confirmButtonText"', '"cancelButtonText"');

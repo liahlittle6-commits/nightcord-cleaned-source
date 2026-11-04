@@ -1246,17 +1246,7 @@ function CustomProfileModal({ rootProps }: { rootProps: any; }) {
                         style={{ color: "var(--text-link)", cursor: "pointer", fontWeight: 500 }}
                         onClick={() => {
                             rootProps.onClose();
-                            try {
-                                SettingsRouter.openUserSettings("equicord_main");
-                            } catch {
-                                try {
-                                    SettingsRouter.open("equicord_main");
-                                } catch {
-                                    try {
-                                        FluxDispatcher.dispatch({ type: "USER_SETTINGS_MODAL_OPEN", section: "equicord_main" });
-                                    } catch { }
-                                }
-                            }
+                            SettingsRouter.openUserSettings("equicord_main_panel");
                         }}
                     >
                         Share your Custom Profile with everyone — click to manage in Nightcord Settings
