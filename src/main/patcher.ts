@@ -138,8 +138,14 @@ if (!IS_VANILLA) {
 
                 const superSetFullScreen = this.setFullScreen.bind(this);
                 const superIsFullScreen = this.isFullScreen.bind(this);
+                let fullscreenAllowed = false;
+
+                this.on("enter-full-screen", () => {
+                    if (!fullscreenAllowed && !isFakeFullScreen) superSetFullScreen(false);
+                });
 
                 this.setFullScreen = (flag: boolean) => {
+                    if (flag && !fullscreenAllowed) return;
                     if (transitioning) return;
                     transitioning = true;
                     try {
@@ -186,16 +192,20 @@ if (!IS_VANILLA) {
                 // passera JAMAIS par setFullScreen natif.
                 if (isTransparent) {
                     this.on("enter-html-full-screen", () => {
+                        fullscreenAllowed = true;
                         if (!isFakeFullScreen) this.setFullScreen(true);
                     });
                     this.on("leave-html-full-screen", () => {
+                        fullscreenAllowed = false;
                         if (isFakeFullScreen) this.setFullScreen(false);
                     });
                 } else {
                     this.on("enter-html-full-screen", () => {
+                        fullscreenAllowed = true;
                         if (!superIsFullScreen()) superSetFullScreen(true);
                     });
                     this.on("leave-html-full-screen", () => {
+                        fullscreenAllowed = false;
                         if (superIsFullScreen()) superSetFullScreen(false);
                     });
                 }
@@ -206,7 +216,8 @@ if (!IS_VANILLA) {
                 this.webContents.on("before-input-event", (event, input) => {
                     if (input.type === "keyDown" && input.key === "F11" && !input.control && !input.shift && !input.alt && !input.meta) {
                         event.preventDefault();
-                        this.setFullScreen(!this.isFullScreen());
+                        fullscreenAllowed = !this.isFullScreen();
+                        this.setFullScreen(fullscreenAllowed);
                     }
                 });
 
