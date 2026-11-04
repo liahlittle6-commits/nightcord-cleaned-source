@@ -137,8 +137,8 @@ export default definePlugin({
         {
             find: "#{intl::STATUS_MENU_LABEL}",
             replacement: {
-                match: /(,\{onClose:\i,popoutContainerRef:\i\}\))\]/,
-                replace: "$1,$self.render()]"
+                match: /(popoutContainerRef:\i,scrollerRef:\i.{0,50}\}\))(?=\])/,
+                replace: "$1,$self.render()"
             }
         },
         {

@@ -95,8 +95,8 @@ export default definePlugin({
             find: "this.renderArtisanalHack()",
             replacement: [
                 {
-                    match: /class (\i)(?= extends \i\.PureComponent.+?static contextType=.+?jsx\)\(\1,\{mode:)/,
-                    replace: "var $1=$self.Layer;class VencordPatchedOldFadeLayer",
+                    match: /class (\i)( extends \i\.PureComponent.+?jsx\)\(\1,\{mode:)/,
+                    replace: "var $1=$self.Layer;class VencordPatchedOldFadeLayer$2",
                     predicate: () => settings.store.disableFade
                 },
                 { // Lazy-load contents
@@ -155,9 +155,9 @@ export default definePlugin({
             predicate: () => settings.store.organizeMenu,
             replacement: [
                 {
-                    match: /children:\[(\i),(?<=\1=(?:function|.{0,30}\.openUserSettings).+?)/, // TODO .{0,30}\.openUserSettings is stable compat
-                    replace: "children:[$self.transformSettingsEntries($1),",
-                },
+                    match: /children:\[(\i),null!=(\i).{0,30}\}\),(\i)\](?<=\1=(?:function|.{0,30}\.openUserSettings).+?)/, // TODO .{0,30}\.openUserSettings is stable compat
+                    replace: "children:$self.transformSettingsEntries([$1,$2,$3])",
+                }
             ]
         },
     ],

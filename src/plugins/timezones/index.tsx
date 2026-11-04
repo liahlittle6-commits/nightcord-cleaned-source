@@ -264,10 +264,17 @@ export default definePlugin({
     patches: [
         // stolen from ViewIcons
         {
-            find: 'backgroundColor:"COMPLETE"',
+            find: 'backgroundColor:"COMPLETE"===',
             replacement: {
-                match: /(?<=backgroundImage.+?children:)!\i.{0,100}className:\i\.\i\}\)/,
-                replace: "[$self.renderProfileTimezone(arguments[0]),$&]"
+                match: /bannerSrc:\i,(?=backgroundColor:"COMPLETE")/,
+                replace: "$&user:arguments[0].user,"
+            }
+        },
+        {
+            find: '"--custom-cutout-radius":',
+            replacement: {
+                match: /(?<=children:\[)\i.{0,100}className:\i\.\i\}\)/,
+                replace: "$self.renderProfileTimezone(arguments[0]),$&"
             }
         },
         {

@@ -330,7 +330,7 @@ export default definePlugin({
                     replace: "const silentTypingShouldHideChatBarTypingIndicators=$self.shouldHideChatBarTypingIndicators();$1"
                 },
                 {
-                    match: /("stop-animation".{0,80}?ref:\i,children:)/,
+                    match: /("stop-animation".{0,150}?ref:\i,children:)/,
                     replace: "$1silentTypingShouldHideChatBarTypingIndicators?[]:"
                 }
             ]
@@ -338,7 +338,7 @@ export default definePlugin({
         {
             find: ",{avatarCutoutX",
             replacement: {
-                match: /isTyping:(\i)=!1(,typingIndicatorRef:\i,isSpeaking:)/,
+                match: /isTyping:(\i)=!1(,typingIndicatorRef:\i,avatarContentRef:)/,
                 replace: "silentTypingIsTyping:$1=$self.shouldHideMembersListTypingIndicators()?false:(arguments[0].isTyping??false)$2"
             }
         },

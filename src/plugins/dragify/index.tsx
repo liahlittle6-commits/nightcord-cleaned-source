@@ -167,7 +167,7 @@ export default definePlugin({
             replacement: [
                 // Voice channel rows (guild sidebar)
                 {
-                    match: /(?<=this.getTooltipText\(\),.{0,100})iconClassName:/,
+                    match: /(?<=ref:this.channelItemRef,.{0,100})iconClassName:/,
                     replace: "draggable:!0,onDragStart:e=>$self.onChannelDragStart(e,{id:this?.props?.channel?.id,guild_id:this?.props?.channel?.guild_id}),$&"
                 },
                 // Voice channel rows (guild sidebar fallback - li wrapper)
@@ -181,7 +181,7 @@ export default definePlugin({
         {
             find: "__invalid_threadMainContent",
             replacement: {
-                match: /className:\i\.\i,onClick:\i,"aria-label":(?=.{0,100}__invalid_threadMainContent)/,
+                match: /className:\i\.\i,onClick:\i,onAuxClick:(?=.{0,100}__invalid_threadMainContent)/,
                 replace: "draggable:!0,onDragStart:e=>$self.onChannelDragStart(e),$&"
             }
         },
@@ -199,7 +199,7 @@ export default definePlugin({
         {
             find: "POPOUT)},children:",
             replacement: {
-                match: /(?<=getUser\(\i\.ownerId\).{0,100})className:\i\.\i,onClick:\i=>\{\(0,\i\.\i\)\((\i),/,
+                match: /(?<=getUser\(\i\.ownerId\).{0,100})className:\i\.\i,onClick:function\(\i\)\{\(0,\i\.\i\)\(\i,/,
                 replace: "draggable:!0,onDragStart:e=>$self.onChannelDragStart(e,{id:arguments[0]?.thread?.id,guild_id:arguments[0]?.thread?.guild_id}),$&"
             }
         },
@@ -216,7 +216,7 @@ export default definePlugin({
             find: ']="BADGES"',
             replacement: {
                 match: /(?="data-username-has-gradient")/,
-                replace: "draggable:!0,onDragStart:e=>$self.onUserDragStart(e,arguments[0].author),\"data-dragify-user\":!0,\"data-user-id\":arguments[0].author.id,"
+                replace: "draggable:!0,onDragStart:e=>$self.onUserDragStart(e,arguments[0].message?.author),\"data-dragify-user\":!0,\"data-user-id\":arguments[0].message?.author?.id,"
             }
         },
         // Call avatars (DM/group call tiles)
@@ -231,7 +231,7 @@ export default definePlugin({
         {
             find: "PrivateChannel.renderAvatar: Invalid prop configuration - no user or channel",
             replacement: {
-                match: /\.CHANNEL\(\i\.\i,\i\.\i\),(?=.{0,150}\.isMultiUserDM\(\))/,
+                match: /\.CHANNEL\(\i\.\i,\i\.\i\),(?=.{0,200}\.isMultiUserDM\(\))/,
                 replace: "$&draggable:!0,onDragStart:e=>$self.onDmDragStart(e,arguments[0].channel),"
             }
         },

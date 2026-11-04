@@ -128,11 +128,24 @@ export default definePlugin({
 
     patches: [
         {
-            find: "parseToAST:",
+            find: "AUTO_MODERATION_SYSTEM_MESSAGE_RULES:",
             replacement: {
-                match: /(parse[\w]*):(.*?)\((\i)\),/g,
-                replace: "$1:$2({...$3,wiggly:$self.wigglyRule}),",
+                match: /staticRouteLink:\{order:(\i\.\i\.order)/,
+                replace: "wiggly:$self.wigglyRule($1),$&",
             },
+        },
+        {
+            find: 'before:"@silent"',
+            replacement: [
+                {
+                    match: /staticRouteLink:{type:/,
+                    replace: 'wiggly:{type:"inlineObject"},$&',
+                },
+                {
+                    match: /case"roleMention":/,
+                    replace: '$&case "wiggly":'
+                }
+            ]
         },
     ],
 

@@ -1,5 +1,3 @@
 # MessageClickActions
 
-Allows you to double click to edit/reply to a message or delete it if you hold the backspace key
-
-![](https://github.com/Vendicated/Vencord/assets/55940580/6885aca2-4021-4910-b636-bb40f877a816)
+Hold Backspace and click a message to delete it instantly. You can pick a different key in the plugin settings.
