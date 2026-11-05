@@ -178,7 +178,8 @@ function setPublicProfileCache(userId: string, entry: { fetched: boolean, data: 
     publicProfilesCache.set(userId, entry);
 }
 
-const PUBLIC_CACHE_TTL = 1000 * 30;
+const PUBLIC_CACHE_TTL = 1000 * 60 * 5;
+const PROFILE_CHANGE_DELAY = 250;
 
 let _lastSeeAll = false;
 function checkSeeAllSettingChange() {
@@ -189,35 +190,51 @@ function checkSeeAllSettingChange() {
     _lastSeeAll = current;
 }
 
+const pendingProfileFetches = new Set<string>();
+let profileChangeTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleProfileChange() {
+    if (profileChangeTimer) return;
+    profileChangeTimer = setTimeout(() => {
+        profileChangeTimer = null;
+        try {
+            const UPS = (Vencord as any).Webpack?.findByProps?.("getUserProfile", "getGuildMemberProfile");
+            UPS?.emitChange?.();
+            const US = (Vencord as any).Webpack?.findByStoreName("UserStore");
+            US?.emitChange?.();
+        } catch { }
+    }, PROFILE_CHANGE_DELAY);
+}
+
 async function fetchPublicProfileIfNeeded(userId: string) {
     checkSeeAllSettingChange();
-    if (!Settings.seeAllCustomProfile) return;
+    if (!Settings.seeAllCustomProfile || pendingProfileFetches.has(userId)) return;
     const existing = publicProfilesCache.get(userId);
     if (existing?.fetched && (Date.now() - existing.timestamp) < PUBLIC_CACHE_TTL) return;
 
-    setPublicProfileCache(userId, { fetched: false, data: null, timestamp: 0 });
-
-    const result = await getPublicPluginConfig("customProfile", userId);
-    const dataToSave = result?.settings || null;
-    if (dataToSave) {
-        delete dataToSave.username;
-        delete dataToSave.globalName;
-        delete dataToSave.avatar;
-        delete dataToSave.bio;
-        delete dataToSave.pronouns;
-        delete dataToSave.email;
-        delete dataToSave.phone;
-        delete dataToSave.copiedUserId;
-    }
-    setPublicProfileCache(userId, { fetched: true, data: dataToSave, timestamp: Date.now() });
-
+    pendingProfileFetches.add(userId);
     try {
-        const UPS = (Vencord as any).Webpack?.findByProps?.("getUserProfile", "getGuildMemberProfile");
-        if (UPS && UPS.emitChange) UPS.emitChange();
-
-        const US = (Vencord as any).Webpack?.findByStoreName("UserStore");
-        if (US && US.emitChange) US.emitChange();
-    } catch {}
+        const result = await getPublicPluginConfig("customProfile", userId);
+        const dataToSave = result?.settings || null;
+        if (dataToSave) {
+            delete dataToSave.username;
+            delete dataToSave.globalName;
+            delete dataToSave.avatar;
+            delete dataToSave.bio;
+            delete dataToSave.pronouns;
+            delete dataToSave.email;
+            delete dataToSave.phone;
+            delete dataToSave.copiedUserId;
+        }
+        const hadData = existing?.data != null;
+        const changed = JSON.stringify(existing?.data ?? null) !== JSON.stringify(dataToSave);
+        setPublicProfileCache(userId, { fetched: true, data: changed ? dataToSave : existing?.data ?? null, timestamp: Date.now() });
+        if (changed && (hadData || dataToSave)) scheduleProfileChange();
+    } catch {
+        setPublicProfileCache(userId, { fetched: true, data: existing?.data ?? null, timestamp: Date.now() });
+    } finally {
+        pendingProfileFetches.delete(userId);
+    }
 }
 
 let cachedOriginalUser: any = null;
