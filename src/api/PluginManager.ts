@@ -55,12 +55,10 @@ const subscribedFluxEventsPlugins = new Set<string>();
 export function isPluginEnabled(p: string) {
     const plugin = Plugins[p];
     if (!plugin) return false;
+    if (plugin.required || plugin.isDependency) return true;
+    if (window.DEADCORD_SAFE_MODE) return false;
 
-    return (
-        plugin.required ||
-        plugin.isDependency ||
-        (Settings as any)?.plugins?.[p]?.enabled
-    ) ?? false;
+    return (Settings as any)?.plugins?.[p]?.enabled ?? false;
 }
 
 export function isSettingDisabled(definedSettings: any, setting: any): boolean {

@@ -164,8 +164,7 @@ const DefaultSettings: Settings = {
 const settings = !IS_REPORTER ? VencordNative.settings.get() : {} as Settings;
 mergeDefaults(settings, DefaultSettings);
 
-// Force enabledByDefault plugins to be enabled, even if they were previously saved as disabled.
-// This runs at load time so it works even for plugins already present in the settings file.
+// Enable enabledByDefault plugins the first time they are seen, but never override a choice the user already saved.
 if (!IS_REPORTER && settings.plugins && plugins) {
     for (const [pluginKey, pluginDef] of Object.entries(plugins as Record<string, any>)) {
         const forceOff =
@@ -179,12 +178,10 @@ if (!IS_REPORTER && settings.plugins && plugins) {
 
         const prefs = typeof VencordNative.deadcord !== "undefined" ? VencordNative.deadcord.getInstallerPrefs() : { defaultPlugins: true };
         const shouldBeEnabled = Boolean(pluginDef?.required) || (Boolean(pluginDef?.enabledByDefault) && prefs.defaultPlugins);
-        if (shouldBeEnabled) {
-            if (!settings.plugins[pluginKey]) {
-                settings.plugins[pluginKey] = { enabled: true };
-            } else {
-                settings.plugins[pluginKey].enabled = true;
-            }
+        if (!settings.plugins[pluginKey]) {
+            if (shouldBeEnabled) settings.plugins[pluginKey] = { enabled: true };
+        } else if (pluginDef?.required) {
+            settings.plugins[pluginKey].enabled = true;
         }
     }
 }
@@ -213,11 +210,6 @@ export const SettingsStore = new SettingsStoreClass(settings, {
                 return target[key] = { enabled: shouldBeEnabled };
             }
 
-            // Si le plugin doit Ãªtre actif par dÃ©faut et qu'il est dÃ©sactivÃ©, on le force Ã  actif
-            if (shouldBeEnabled && target[key].enabled === false) {
-                target[key].enabled = true;
-            }
-            // Si le plugin doit Ãªtre dÃ©sactivÃ© de force, on le force Ã  inactif
             if (forceOff) {
                 target[key].enabled = false;
             }

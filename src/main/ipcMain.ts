@@ -870,7 +870,7 @@ if (IS_DISCORD_DESKTOP) {
         if (!rendererJsCache) {
             rendererJsCache = readFileSync(join(__dirname, "renderer.js"), "utf-8");
         }
-        e.returnValue = rendererJsCache;
+        e.returnValue = (process.argv.includes("--deadcord-safe") ? "window.DEADCORD_SAFE_MODE=true;" : "") + rendererJsCache;
     });
 }
 
