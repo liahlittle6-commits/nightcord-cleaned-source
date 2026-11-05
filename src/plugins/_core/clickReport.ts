@@ -5,6 +5,7 @@
  */
 
 import { isPluginEnabled } from "@api/PluginManager";
+import { Settings } from "@api/Settings";
 import { copyToClipboard } from "@utils/clipboard";
 import { Logger } from "@utils/Logger";
 import definePlugin, { StartAt } from "@utils/types";
@@ -25,6 +26,10 @@ const MAX_LONG_TASKS = 200;
 const LONG_TASK_WINDOW_MS = 60_000;
 const REPORT_KEY = "F8";
 const TRACKED_EVENTS = ["pointerdown", "pointerup", "click"];
+const MOVE_WINDOW_MS = 30_000;
+const MAX_DRAG_ELEMENTS = 8;
+const MAX_DRAG_RULES = 10;
+const SAMPLE_POINTS = [[0.5, 0.5], [0.25, 0.6], [0.75, 0.4], [0.5, 0.9]];
 
 const logger = new Logger("ClickReport");
 const records: PointerRecord[] = [];
@@ -32,6 +37,7 @@ const longTasks: { start: number; duration: number; }[] = [];
 let lastX = 0;
 let lastY = 0;
 let lastMove = 0;
+const moveTimes: number[] = [];
 let longTaskObserver: PerformanceObserver | null = null;
 
 function describe(el: Element | null) {
@@ -49,6 +55,49 @@ function onMove(e: PointerEvent) {
     lastX = e.clientX;
     lastY = e.clientY;
     lastMove = Date.now();
+    moveTimes.push(lastMove);
+    while (moveTimes.length && moveTimes[0] < lastMove - MOVE_WINDOW_MS) moveTimes.shift();
+}
+
+const appRegion = (el: Element) => {
+    const style = getComputedStyle(el);
+    return style.getPropertyValue("-webkit-app-region") || style.getPropertyValue("app-region");
+};
+
+function describeStack(x: number, y: number) {
+    return document.elementsFromPoint(x, y).slice(0, 4).map(el => {
+        const style = getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        return `    ${describe(el)} | pointer-events:${style.pointerEvents} region:${appRegion(el) || "none"} size:${Math.round(rect.width)}x${Math.round(rect.height)}`;
+    });
+}
+
+function findDragElements() {
+    return [...document.querySelectorAll("*")]
+        .filter(el => appRegion(el) === "drag")
+        .map(el => ({ el, rect: el.getBoundingClientRect() }))
+        .sort((a, b) => b.rect.width * b.rect.height - a.rect.width * a.rect.height)
+        .slice(0, MAX_DRAG_ELEMENTS)
+        .map(({ el, rect }) => `  ${describe(el)} at ${Math.round(rect.left)},${Math.round(rect.top)} size:${Math.round(rect.width)}x${Math.round(rect.height)}`);
+}
+
+function findDragRules() {
+    const found: string[] = [];
+    for (const sheet of document.styleSheets) {
+        let rules: CSSRuleList;
+        try {
+            rules = sheet.cssRules;
+        } catch {
+            continue;
+        }
+        const source = sheet.href ?? describe(sheet.ownerNode as Element);
+        for (const rule of rules) {
+            if (!/app-region:\s*drag/.test(rule.cssText)) continue;
+            found.push(`  ${(rule as CSSStyleRule).selectorText ?? rule.cssText.slice(0, 80)} from ${source}`);
+            if (found.length >= MAX_DRAG_RULES) return found;
+        }
+    }
+    return found;
 }
 
 function onCapture(e: Event) {
@@ -76,6 +125,17 @@ function buildReport() {
         const rect = el.getBoundingClientRect();
         lines.push(`  ${describe(el)} | pointer-events:${style.pointerEvents} position:${style.position} z:${style.zIndex} size:${Math.round(rect.width)}x${Math.round(rect.height)} inert:${!!el.closest("[inert]")}`);
     }
+
+    lines.push(`mouse moves received in last 30s: ${moveTimes.length} | pointer lock: ${describe(document.pointerLockElement)} | window: ${innerWidth}x${innerHeight}`);
+    for (const [fx, fy] of SAMPLE_POINTS) {
+        const x = Math.round(innerWidth * fx);
+        const y = Math.round(innerHeight * fy);
+        lines.push(`  at ${x},${y}:`, ...describeStack(x, y));
+    }
+
+    lines.push("drag areas (largest first):", ...findDragElements());
+    lines.push("css rules that make drag areas:", ...findDragRules());
+    lines.push(`themes: quickCss ${Settings.useQuickCss} | local ${Settings.enabledThemes?.join(", ") || "none"} | online ${Settings.enabledThemeLinks?.length ?? 0} of ${Settings.themeLinks?.length ?? 0}`);
 
     const inert = [...document.querySelectorAll("[inert]")];
     lines.push(`inert elements: ${inert.length} ${inert.slice(0, 3).map(describe).join(", ")}`);
