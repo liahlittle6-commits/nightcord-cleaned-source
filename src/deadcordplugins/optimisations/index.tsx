@@ -94,10 +94,10 @@ const settings = definePluginSettings({
         restartNeeded: false,
         onChange(v: boolean) { limitMsgCache = v; if (!v) stopCacheCleaner(); else startCacheCleaner(); }
     },
-    reduceFpsBackground: {
+    limitBackgroundFps: {
         type: OptionType.BOOLEAN,
         description: "Limiter Discord à ~10 FPS quand la fenêtre est en arrière-plan",
-        default: true,
+        default: false,
         restartNeeded: false,
         onChange(v: boolean) { applyBgFpsPatch(v); }
     },
@@ -420,7 +420,7 @@ export default definePlugin({
         buildAndInjectCss();
 
         if (limitMsgCache) startCacheCleaner();
-        if (settings.store.reduceFpsBackground) applyBgFpsPatch(true);
+        if (settings.store.limitBackgroundFps) applyBgFpsPatch(true);
 
         document.addEventListener("visibilitychange", _onGCVisChange);
     },
