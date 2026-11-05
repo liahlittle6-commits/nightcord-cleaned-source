@@ -14,8 +14,8 @@ import { openDeadcordModal } from "@deadcordplugins/compactMode/DeadcordModal";
 
 const logger = new Logger("HeaderBarAPI");
 
-const HeaderBarClasses = findCssClassesLazy("clickable", "withHighlight");
-const HeaderBarIcon = findComponentByCodeLazy(".HEADER_BAR_BADGE_TOP:", '"aria-haspopup":') as ComponentType<ChannelToolbarButtonProps>;
+const HeaderBarClasses = findCssClassesLazy("clickable", "selected", "badge", "badgeContainer");
+const HeaderBarIcon = findComponentByCodeLazy("tooltipPosition:", '"aria-haspopup":', '"data-jump-section":') as ComponentType<ChannelToolbarButtonProps>;
 
 export interface HeaderBarButtonProps {
     icon: ComponentType<any>;
@@ -73,7 +73,7 @@ export function HeaderBarButton(props: HeaderBarButtonProps & { ref?: React.RefO
             {({ onMouseEnter, onMouseLeave }) => (
                 <Clickable
                     {...{ innerRef: ref } as any}
-                    className={classes(HeaderBarClasses.clickable, HeaderBarClasses.withHighlight, className)}
+                    className={classes(HeaderBarClasses.clickable, className)}
                     style={{ width: iconSize, boxSizing: "content-box", justifyContent: "center", color: "oklab(0.745437 0.00131872 -0.00849736)", margin: "0 4px", cursor: "pointer" }}
                     onClick={onClick}
                     onContextMenu={onContextMenu}
